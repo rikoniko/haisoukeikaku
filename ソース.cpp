@@ -13,10 +13,10 @@ using namespace std;
 
 #define N 101
 #define WSIZE 600
-#define A 3		//‰^”ÀÔ‚Ì‘ä” att48[3],eil101[3],pcb442[5],pr2392[7]
-#define aa 1	//ƒRƒXƒg‚Ìa att48[2],eil[1],pcb442[2],pr2392[3]
-#define G 800	//ˆâ“`q‚Ì”
-#define OPT 25	//1.5-opt‹ß–T
+#define A 3		//é‹æ¬è»Šã®å°æ•° att48[3],eil101[3],pcb442[5],pr2392[7]
+#define aa 1	//ã‚³ã‚¹ãƒˆã®a att48[2],eil[1],pcb442[2],pr2392[3]
+#define G 800	//åˆæœŸè§£ã®å€‹æ•°
+#define OPT 25	//1.5-optè¿‘å‚
 
 void display();
 void draw_solution(int rt[N], double position[N][2]);
@@ -42,12 +42,12 @@ void search_in_each_route(int* rt_1, int* rt_2, int count_1, int count_2);
 void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E, int* rt_F, int* rt_G);
 double dist_two_route(int route[], int count);
 
-int route[N];		//‰ği–K–â‡˜j
-double pos[N][2];	//’¬‚ÌÀ•W
+int route[N];		//è§£ï¼ˆè¨ªå•é †åºï¼‰
+double pos[N][2];	//ç”ºã®åº§æ¨™
 int num_car = A;
 
-double gr_x;	//ƒfƒ|idSjxÀ•W
-double gr_y;	//ƒfƒ|idSjyÀ•W
+double gr_x;	//ãƒ‡ãƒï¼ˆé‡å¿ƒï¼‰xåº§æ¨™
+double gr_y;	//ãƒ‡ãƒï¼ˆé‡å¿ƒï¼‰yåº§æ¨™
 
 int rt_A[N], countA = 0;
 int rt_B[N], countB = 0;
@@ -69,7 +69,7 @@ int best_A[N], best_B[N], best_C[N], best_D[N], best_E[N], best_F[N], best_G[N];
 bool rt_zero = true;
 double min_cost=100;
 int r_gene[G + 1][N];
-int gg = 0;		//ˆâ“`q‚Ì”‚ğ”‚¦‚é‚æ‚¤
+int gg = 0;		//éºä¼å­ã®æ•°ã‚’æ•°ãˆã‚‹ã‚ˆã†
 
 void idle() {
 	random_route(route, rand());
@@ -82,7 +82,7 @@ void main(int argc, char* argv[])
 
 	srand(time(NULL));
 
-	//ƒOƒ‰ƒtƒBƒbƒN—pŠÖ”Díœ‚·‚é‚ÈI
+	//ã‚°ãƒ©ãƒ•ã‚£ãƒƒã‚¯ç”¨é–¢æ•°ï¼å‰Šé™¤ã™ã‚‹ãªï¼
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(WSIZE, WSIZE);
 	glutInit(&argc, argv);
@@ -94,19 +94,19 @@ void main(int argc, char* argv[])
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glutIdleFunc(idle);
 
-	//ƒtƒ@ƒCƒ‹‚ğŠJ‚­
+	//ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ã
 	if ((fp = fopen("eil101.txt", "r")) == NULL) {
 		printf("no file\n");
 		exit(0);
 	}
 
-	//”z’BæÀ•W‚ğ‚QŸŒ³”z—ñpos‚É“Ç‚İ‚±‚ŞD
+	//é…é”å…ˆåº§æ¨™ã‚’ï¼’æ¬¡å…ƒé…åˆ—posã«èª­ã¿ã“ã‚€ï¼
 	for (i = 0; i < N; i++) {
 		fscanf(fp, "%d,%lf,%lf\n", &j, &(pos[i][0]), &(pos[i][1]));
 	}
 	fclose(fp);
 
-	glutMainLoop();//ƒOƒ‰ƒtƒBƒbƒN—pŠÖ”Díœ‚·‚é‚ÈI
+	glutMainLoop();//ã‚°ãƒ©ãƒ•ã‚£ãƒƒã‚¯ç”¨é–¢æ•°ï¼å‰Šé™¤ã™ã‚‹ãªï¼
 }
 
 void random_route(int rt[N], int seed) {
@@ -123,8 +123,7 @@ void random_route(int rt[N], int seed) {
 	bool insert_end_rtF = false;
 	bool insert_end_rtG = false;
 
-	
-
+	//éƒ½å¸‚ã‚’ãƒ©ãƒ³ãƒ€ãƒ ã§r_geneã«å…¥ã‚Œã‚‹
 	if (rt_zero) {
 		for (int g = 0; g < G; g++) {
 			for (i = 0; i < N; i++) {
@@ -149,6 +148,8 @@ void random_route(int rt[N], int seed) {
 
 		rt_zero = false;
 	}
+	
+	//é‹æ¬è»ŠãŒè¨ªå•ã™ã‚‹éƒ½å¸‚ã®æ•°ã‚’ã‚«ã‚¦ãƒ³ãƒˆã™ã‚‹
 	countA = 0;
 	countB = 0;
 	countC = 0;
@@ -208,7 +209,7 @@ void random_route(int rt[N], int seed) {
 
 		evABC_sort(ev_sort);
 
-		//‰^”ÀÔ‚R‚Æ‚T‚Åˆá‚¤‚æ
+		//é‹æ¬è»Šï¼“ã¨ï¼•ã§é•ã†ã‚ˆ
 		if (ev_A == ev_sort[0]) {
 			countA++;
 			rt_A[countA] = r_gene[gg][A];
@@ -249,51 +250,51 @@ void random_route(int rt[N], int seed) {
 		for (int i = A+1; i < N; i++) {
 			gr_k = sqrt(pow((gr_x - pos[r_gene[gg][i]][0]), 2) + pow((gr_y - pos[r_gene[gg][i]][1]), 2));
 
-			//ƒ‹[ƒgA‚¾‚¯‚ğl‚¦‚é
+			//ãƒ«ãƒ¼ãƒˆAã ã‘ã‚’è€ƒãˆã‚‹
 			double min_A = ev_start2k_k2end(rt_A, 0,r_gene[gg][i]) + gr_k;
-			int min_rt_A = rt_A[0];//ƒfƒ|‚ÌŠÔiƒfƒ|‚ÆÅ‰‚Ì“ss‚ÌŠÔj‚É‘}“ü
+			int min_rt_A = rt_A[0];//ãƒ‡ãƒã®é–“ï¼ˆãƒ‡ãƒã¨æœ€åˆã®éƒ½å¸‚ã®é–“ï¼‰ã«æŒ¿å…¥
 			bool insert_gr_startA = true;
 			each_route_min(rt_A, i, gr_k, countA, min_A, min_rt_A, insert_gr_startA, insert_end_rtA);
 
 
-			//ƒ‹[ƒgB‚¾‚¯l‚¦‚é
+			//ãƒ«ãƒ¼ãƒˆBã ã‘è€ƒãˆã‚‹
 			double min_B = ev_start2k_k2end(rt_B,0, r_gene[gg][i]) + gr_k;
-			int min_rt_B = rt_B[0];//ƒfƒ|‚ÌŠÔiƒfƒ|‚ÆÅ‰‚Ì“ss‚ÌŠÔj‚É‘}“ü
+			int min_rt_B = rt_B[0];//ãƒ‡ãƒã®é–“ï¼ˆãƒ‡ãƒã¨æœ€åˆã®éƒ½å¸‚ã®é–“ï¼‰ã«æŒ¿å…¥
 			bool insert_gr_startB = true;
 			each_route_min(rt_B, i, gr_k, countB, min_B, min_rt_B, insert_gr_startB, insert_end_rtB);
 
-			//ƒ‹[ƒgC‚¾‚¯l‚¦‚é
+			//ãƒ«ãƒ¼ãƒˆCã ã‘è€ƒãˆã‚‹
 			double min_C = ev_start2k_k2end(rt_C,0, r_gene[gg][i]) + gr_k;
-			int min_rt_C = rt_C[0];//ƒfƒ|‚ÌŠÔiƒfƒ|‚ÆÅ‰‚Ì“ss‚ÌŠÔj‚É‘}“ü
+			int min_rt_C = rt_C[0];//ãƒ‡ãƒã®é–“ï¼ˆãƒ‡ãƒã¨æœ€åˆã®éƒ½å¸‚ã®é–“ï¼‰ã«æŒ¿å…¥
 			bool insert_gr_startC = true;
 			each_route_min(rt_C,i,gr_k,countC,min_C, min_rt_C,insert_gr_startC,insert_end_rtC);		
 			
-			//ƒ‹[ƒgD‚¾‚¯l‚¦‚é
+			//ãƒ«ãƒ¼ãƒˆDã ã‘è€ƒãˆã‚‹
 			/*double min_D = ev_start2k_k2end(rt_D, 0, r_gene[gg][i]) + gr_k;
-			int min_rt_D = rt_D[0];//ƒfƒ|‚ÌŠÔiƒfƒ|‚ÆÅ‰‚Ì“ss‚ÌŠÔj‚É‘}“ü
+			int min_rt_D = rt_D[0];//ãƒ‡ãƒã®é–“ï¼ˆãƒ‡ãƒã¨æœ€åˆã®éƒ½å¸‚ã®é–“ï¼‰ã«æŒ¿å…¥
 			bool insert_gr_startD = true;
 			each_route_min(rt_D, i, gr_k, countD, min_D, min_rt_D, insert_gr_startD, insert_end_rtD);
 
-			//ƒ‹[ƒgE‚¾‚¯l‚¦‚é
+			//ãƒ«ãƒ¼ãƒˆEã ã‘è€ƒãˆã‚‹
 			double min_E = ev_start2k_k2end(rt_E, 0, r_gene[gg][i]) + gr_k;
-			int min_rt_E = rt_E[0];//ƒfƒ|‚ÌŠÔiƒfƒ|‚ÆÅ‰‚Ì“ss‚ÌŠÔj‚É‘}“ü
+			int min_rt_E = rt_E[0];//ãƒ‡ãƒã®é–“ï¼ˆãƒ‡ãƒã¨æœ€åˆã®éƒ½å¸‚ã®é–“ï¼‰ã«æŒ¿å…¥
 			bool insert_gr_startE = true;
 			each_route_min(rt_E, i, gr_k, countE, min_E, min_rt_E, insert_gr_startE, insert_end_rtE);
 
-			//ƒ‹[ƒgF‚¾‚¯l‚¦‚é
+			//ãƒ«ãƒ¼ãƒˆFã ã‘è€ƒãˆã‚‹
 			double min_F = ev_start2k_k2end(rt_F, 0, r_gene[gg][i]) + gr_k;
-			int min_rt_F = rt_F[0];//ƒfƒ|‚ÌŠÔiƒfƒ|‚ÆÅ‰‚Ì“ss‚ÌŠÔj‚É‘}“ü
+			int min_rt_F = rt_F[0];//ãƒ‡ãƒã®é–“ï¼ˆãƒ‡ãƒã¨æœ€åˆã®éƒ½å¸‚ã®é–“ï¼‰ã«æŒ¿å…¥
 			bool insert_gr_startF = true;
 			each_route_min(rt_F, i, gr_k, countF, min_F, min_rt_F, insert_gr_startF, insert_end_rtF);
 
-			//ƒ‹[ƒgG‚¾‚¯l‚¦‚é
+			//ãƒ«ãƒ¼ãƒˆGã ã‘è€ƒãˆã‚‹
 			double min_G = ev_start2k_k2end(rt_G, 0, r_gene[gg][i]) + gr_k;
-			int min_rt_G = rt_G[0];//ƒfƒ|‚ÌŠÔiƒfƒ|‚ÆÅ‰‚Ì“ss‚ÌŠÔj‚É‘}“ü
+			int min_rt_G = rt_G[0];//ãƒ‡ãƒã®é–“ï¼ˆãƒ‡ãƒã¨æœ€åˆã®éƒ½å¸‚ã®é–“ï¼‰ã«æŒ¿å…¥
 			bool insert_gr_startG = true;
 			each_route_min(rt_G, i, gr_k, countG, min_G, min_rt_G, insert_gr_startG, insert_end_rtG);*/
 
 
-			//AEBEC‚Ì•]‰¿‚ğ•À‚×‚é
+			//Aãƒ»Bãƒ»Cã®è©•ä¾¡ã‚’ä¸¦ã¹ã‚‹
 			ev_sort[0] = min_A;
 			ev_sort[1] = min_B;
 			ev_sort[2] = min_C;
@@ -354,45 +355,45 @@ void random_route(int rt[N], int seed) {
 		
 
 		if (countA > 1) {
-			//cout << "A“Ë‘R•ÏˆÙ" << endl;
-			mutation(rt_A, countA);//“Ë‘R•ÏˆÙ
+			//cout << "Açªç„¶å¤‰ç•°" << endl;
+			mutation(rt_A, countA);//çªç„¶å¤‰ç•°
 		}
 		
 		if (countB > 1){
-			//cout << "B“Ë‘R•ÏˆÙ" << endl;
-			mutation(rt_B, countB);//“Ë‘R•ÏˆÙ
+			//cout << "Bçªç„¶å¤‰ç•°" << endl;
+			mutation(rt_B, countB);//çªç„¶å¤‰ç•°
 		}
 		
 		if (countC > 1) {
-			//cout << "C“Ë‘R•ÏˆÙ" << endl;
-			mutation(rt_C, countC);//“Ë‘R•ÏˆÙ
+			//cout << "Cçªç„¶å¤‰ç•°" << endl;
+			mutation(rt_C, countC);//çªç„¶å¤‰ç•°
 		}
 
 		/*if (countD > 1) {
-			//cout << "C“Ë‘R•ÏˆÙ" << endl;
-			mutation(rt_D, countD);//“Ë‘R•ÏˆÙ
+			//cout << "Cçªç„¶å¤‰ç•°" << endl;
+			mutation(rt_D, countD);//çªç„¶å¤‰ç•°
 		}
 		if (countE > 1) {
-			//cout << "C“Ë‘R•ÏˆÙ" << endl;
-			mutation(rt_E, countE);//“Ë‘R•ÏˆÙ
+			//cout << "Cçªç„¶å¤‰ç•°" << endl;
+			mutation(rt_E, countE);//çªç„¶å¤‰ç•°
 		}
 		if (countF > 1) {
-			//cout << "C“Ë‘R•ÏˆÙ" << endl;
-			mutation(rt_F, countF);//“Ë‘R•ÏˆÙ
+			//cout << "Cçªç„¶å¤‰ç•°" << endl;
+			mutation(rt_F, countF);//çªç„¶å¤‰ç•°
 		}
 		if (countG > 1) {
-			//cout << "C“Ë‘R•ÏˆÙ" << endl;
-			mutation(rt_G, countG);//“Ë‘R•ÏˆÙ
+			//cout << "Cçªç„¶å¤‰ç•°" << endl;
+			mutation(rt_G, countG);//çªç„¶å¤‰ç•°
 		}*/
 		
-		//2‚Â‚ÌŒo˜H‚²‚Æ‚Ì2opt‹ß–T
+		//2ã¤ã®çµŒè·¯ã”ã¨ã®2optè¿‘å‚
 		if (countA > 1 && countB > 1 && countC > 1) {
 			two_route_search(rt_A, rt_B, rt_C, rt_D, rt_E, rt_F, rt_G);
 		}
 
-		cout << "9EEEEEEEEE" << endl;
+		cout << "9ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»" << endl;
 
-		//¡‚ÌƒRƒXƒg
+		//ä»Šã®ã‚³ã‚¹ãƒˆ
 		
 		dist_A = dist_ABC(rt_A, countA);
 		dist_B = dist_ABC(rt_B, countB);
@@ -552,7 +553,7 @@ void draw_solution(int rt[N], double position[N][2]) {
 	}
 	glEnd();
 
-	//ƒfƒ|‚Ì•\¦
+	//ãƒ‡ãƒã®è¡¨ç¤º
 	glColor3d(1.0, 0.0, 0.0);//red
 	glPointSize(5);
 	glBegin(GL_POINTS);
@@ -599,7 +600,7 @@ void drawBitmapString(void* font, char* string)
 {
 	glPushAttrib(GL_CURRENT_BIT);
 
-	/* ƒrƒbƒgƒ}ƒbƒv•¶š—ñ‚Ì•`‰æ */
+	/* ãƒ“ãƒƒãƒˆãƒãƒƒãƒ—æ–‡å­—åˆ—ã®æç”» */
 	while (*string)
 		glutBitmapCharacter(font, *string++);
 
@@ -651,7 +652,7 @@ double ev_start2k_k2end(int rt_ABC[], int start_or_end,int rt) {
 
 }
 
-void render_string(float x, float y, const char* str, double cost) { //•¶š•\‹L—p
+void render_string(float x, float y, const char* str, double cost) { //æ–‡å­—è¡¨è¨˜ç”¨
 	float z = -1.0f;
 	glColor3f(1, 1, 1);
 	glRasterPos3d(x, y, z);
@@ -712,7 +713,7 @@ double dist_ABC(int route[], int count) {
 	return distance;
 }
 
-//2‚Â‚Ìƒ‹[ƒg‚Ç‚¤‚µ‚Å‚Ì‹——£
+//2ã¤ã®ãƒ«ãƒ¼ãƒˆã©ã†ã—ã§ã®è·é›¢
 double dist_two_route(int route[], int count) {
 	double distance = 0;	
 	for (int i = 0; i < count; i++) {
@@ -724,15 +725,15 @@ double dist_two_route(int route[], int count) {
 
 void mutation(int *route,int count) {
 	double dist_ac, dist_cb,dist_ab,now_dist;// , dist_pn, dist_ab, dist_pc, dist_cn, now_dist;
-	double min_mutation = 100;//•Ï‰»—Ê‚ªÅ¬‚È‚à‚Ì‚ğ•Û
-	double now_mutation = 0;//¡‚Ì•Ï‰»—Ê
-	int insert_city = 0;//‘}“ü‚·‚é“ss
-	int pre_city = 0;//‚±‚Ì“ss‚ÌŸ‚É‘}“ü
-	bool is_improved = true;//‰ü‘P‚³‚ê‚½‚©
+	double min_mutation = 100;//å¤‰åŒ–é‡ãŒæœ€å°ãªã‚‚ã®ã‚’ä¿æŒ
+	double now_mutation = 0;//ä»Šã®å¤‰åŒ–é‡
+	int insert_city = 0;//æŒ¿å…¥ã™ã‚‹éƒ½å¸‚
+	int pre_city = 0;//ã“ã®éƒ½å¸‚ã®æ¬¡ã«æŒ¿å…¥
+	bool is_improved = true;//æ”¹å–„ã•ã‚ŒãŸã‹
 	bool is_improved_2opt = true;
-	double min_dist = dist_ABC(route, count);//‹ÇŠ’Tõ‚·‚é‘O‚Ì‹——£
+	double min_dist = dist_ABC(route, count);//å±€æ‰€æ¢ç´¢ã™ã‚‹å‰ã®è·é›¢
 
-	//1.5-opt‹ß–T
+	//1.5-optè¿‘å‚
 	while (is_improved) {
 		for (int k = 0; k < count; k++) {
 			for (int c = 0; c < k; c++) {
@@ -767,12 +768,12 @@ void mutation(int *route,int count) {
 		if (insert_city > pre_city) {
 
 			for (int s = insert_city; s > pre_city+1; s--) {
-				swap(route[s], route[s - 1]);//‘O‚Ì”z—ñ‚ÆŒğŠ·
+				swap(route[s], route[s - 1]);//å‰ã®é…åˆ—ã¨äº¤æ›
 			}
 		}
 		else {
 			for (int s = insert_city; s < pre_city; s++) {
-				swap(route[s], route[s + 1]);//Ÿ‚Ì”z—ñ‚ÆŒğŠ·
+				swap(route[s], route[s + 1]);//æ¬¡ã®é…åˆ—ã¨äº¤æ›
 			}
 		}
 
@@ -780,34 +781,34 @@ void mutation(int *route,int count) {
 
 		if (now_dist < min_dist) {
 			min_dist = now_dist;
-			//cout << "1.5-opt‹ß–TÀs" << endl;
+			//cout << "1.5-optè¿‘å‚å®Ÿè¡Œ" << endl;
 			is_improved = true;
 		}
 		else {
-			//‚à‚Æ‚É–ß‚·
+			//ã‚‚ã¨ã«æˆ»ã™
 			if (insert_city > pre_city) {
 				for (int s = pre_city + 1; s < insert_city; s++) {
-					swap(route[s], route[s + 1]);//‘O‚Ì”z—ñ‚ÆŒğŠ·
+					swap(route[s], route[s + 1]);//å‰ã®é…åˆ—ã¨äº¤æ›
 				}
 			}
 			else {
 				for (int s = insert_city; s < pre_city; s++) {
-					swap(route[s], route[s + 1]);//‘O‚Ì”z—ñ‚ÆŒğŠ·
+					swap(route[s], route[s + 1]);//å‰ã®é…åˆ—ã¨äº¤æ›
 				}
 			}
 			is_improved = false;
 		}
 	}
 	
-	//2-opt‹ß–T
+	//2-optè¿‘å‚
 	int now_temp[N] = {0},min_x=0,min_c=0;
-	//’l‚ğƒRƒs[
+	//å€¤ã‚’ã‚³ãƒ”ãƒ¼
 	for (int x = 0; x < count + 1; x++) {
 		now_temp[x] = route[x];
 	}
 	is_improved = true;
 	min_dist = dist_ABC(route, count);
-	double pre_dist = dist_ABC(route, count);//‹ÇŠ’Tõ–@i2-opt‹ß–Tj‚Ì‘O‚Ì‹——£
+	double pre_dist = dist_ABC(route, count);//å±€æ‰€æ¢ç´¢æ³•ï¼ˆ2-optè¿‘å‚ï¼‰ã®å‰ã®è·é›¢
 	
 	while (is_improved_2opt) {
 		for (int x = 0; x < count; x++) {
@@ -824,7 +825,7 @@ void mutation(int *route,int count) {
 					min_x = x;
 					min_c = c;
 				}
-				//Œ³‚É–ß‚·
+				//å…ƒã«æˆ»ã™
 				for (int x = 0; x < count + 1; x++) {
 					now_temp[x] = route[x];
 				}
@@ -833,7 +834,7 @@ void mutation(int *route,int count) {
 		
 		if (min_dist < pre_dist) {
 			pre_dist = min_dist;
-			//Œo˜H‚ğXV
+			//çµŒè·¯ã‚’æ›´æ–°
 			for (int k = 0; k <= min_c - min_x; k++) {
 				now_temp[min_x + k] = route[min_c - k];
 			}
@@ -855,7 +856,7 @@ void mutation(int *route,int count) {
 
 
 void swap(int &x, int &y) {
-	int temp;    // ’l‚ğˆê•Û‘¶‚·‚é•Ï”
+	int temp;    // å€¤ã‚’ä¸€æ™‚ä¿å­˜ã™ã‚‹å¤‰æ•°
 
 	temp = x;
 	x = y;
@@ -885,18 +886,18 @@ void each_route_min(int route[],int insert_city,double gr_k,int count,double& mi
 
 	if (count != 0) {
 		for (int j = 0; j < count; j++) {
-			//ƒ‹[ƒg“à‚Å‘}“üiƒfƒ|ˆÈŠOj
+			//ãƒ«ãƒ¼ãƒˆå†…ã§æŒ¿å…¥ï¼ˆãƒ‡ãƒä»¥å¤–ï¼‰
 			ev_XY = insert_but_gr(route, insert_city, j);
 
 			if (min > ev_XY) {
 				min = ev_XY;
-				min_rt = j;//‚±‚Ì“ss‚ÌŸ‚É‚‹‚ğ‘}“ü
+				min_rt = j;//ã“ã®éƒ½å¸‚ã®æ¬¡ã«ï½‹ã‚’æŒ¿å…¥
 				insert_gr_start = false;
 
 			}
 		}
 
-		//ƒfƒ|‚É‹A‚Á‚Ä‚­‚é‘O‚É‘}“ü
+		//ãƒ‡ãƒã«å¸°ã£ã¦ãã‚‹å‰ã«æŒ¿å…¥
 		ev_end = ev_start2k_k2end(route, count, r_gene[gg][insert_city]) + gr_k;
 
 		if (min > ev_end) {
@@ -913,13 +914,13 @@ void each_route_min(int route[],int insert_city,double gr_k,int count,double& mi
 }
 
 void insert_position(int route[],int &count,bool insert_gr_start,bool insert_end_rt,int insert_city,int min_rt) {
-	//ƒfƒ|‚ÆÅ‰‚Ì“ss‚ÌŠÔ‚É‘}“ü
+	//ãƒ‡ãƒã¨æœ€åˆã®éƒ½å¸‚ã®é–“ã«æŒ¿å…¥
 	if (insert_gr_start) {
 		count++;
 		routeInsert(route, count, insert_city, 0);
 
 	}
-	//ÅŒã‚Æƒfƒ|‚ÌŠÔ‚É‘}“ü
+	//æœ€å¾Œã¨ãƒ‡ãƒã®é–“ã«æŒ¿å…¥
 	else if (insert_end_rt) {
 		count++;
 		route[count] = insert_city;
@@ -932,21 +933,21 @@ void insert_position(int route[],int &count,bool insert_gr_start,bool insert_end
 	}
 }
 
-//2-opt‚ğs‚¤2‚Â‚Ìƒ‹[ƒg‚Ì‘g‡‚¹
+//2-optã‚’è¡Œã†2ã¤ã®ãƒ«ãƒ¼ãƒˆã®çµ„åˆã›
 void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E, int* rt_F, int* rt_G ) {
-	cout << "aaaEEEEEEEEE" << endl;
+	cout << "aaaãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»" << endl;
 	if (num_car == 3) {
-		//att48[3]‚Ì‚Æ‚«‚ÉÀs
-		cout << "AEEEEEEEEE" << endl;
+		//att48[3]ã®ã¨ãã«å®Ÿè¡Œ
+		cout << "Aãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»" << endl;
 		search_in_each_route(rt_A, rt_B, countA, countB);
-		cout << "BEEEEEEEEE" << endl;
+		cout << "Bãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»" << endl;
 		search_in_each_route(rt_B, rt_C, countB, countC);
-		cout << "CEEEEEEEEE" << endl;
+		cout << "Cãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»" << endl;
 		search_in_each_route(rt_C, rt_A, countC, countA);
 		
 	}
 	else if (num_car == 5) {
-		//pcb442[5]‚Ì‚Æ‚«‚ÉÀs
+		//pcb442[5]ã®ã¨ãã«å®Ÿè¡Œ
 		search_in_each_route(rt_A, rt_B, countA, countB);
 		search_in_each_route(rt_B, rt_C, countB, countC);
 		search_in_each_route(rt_C, rt_D, countC, countD);
@@ -954,7 +955,7 @@ void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E, int
 		search_in_each_route(rt_E, rt_A, countE, countA);
 	}
 	else {
-		//pr2392[7]‚Ì‚Æ‚«‚ÉÀs
+		//pr2392[7]ã®ã¨ãã«å®Ÿè¡Œ
 		search_in_each_route(rt_A, rt_B, countA, countB);
 		search_in_each_route(rt_B, rt_C, countB, countC);
 		search_in_each_route(rt_C, rt_D, countC, countD);
@@ -967,48 +968,48 @@ void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E, int
 }
 
 void search_in_each_route(int* rt_1,int* rt_2,int count_1,int count_2) {
-	int split_1 = count_1+1;		//ƒ‹[ƒg‚ğ•ª‚¯‚é‚Æ‚«—p
-	int split_2 = split_1+count_2+1;	//ƒ‹[ƒg‚ğ•ª‚¯‚é‚Æ‚«—p
+	int split_1 = count_1+1;		//ãƒ«ãƒ¼ãƒˆã‚’åˆ†ã‘ã‚‹ã¨ãç”¨
+	int split_2 = split_1+count_2+1;	//ãƒ«ãƒ¼ãƒˆã‚’åˆ†ã‘ã‚‹ã¨ãç”¨
 	int num = count_1+count_2;
 	int newtemp[N] = { 0 };
-	int start_2opt_position = 0;	//2opt‚ğ‚·‚é”ÍˆÍ‚ÌƒXƒ^[ƒg
-	int end_2opt_position = 0;		//2opt‚ğ‚·‚é”ÍˆÍ‚ÌƒGƒ“ƒh
+	int start_2opt_position = 0;	//2optã‚’ã™ã‚‹ç¯„å›²ã®ã‚¹ã‚¿ãƒ¼ãƒˆ
+	int end_2opt_position = 0;		//2optã‚’ã™ã‚‹ç¯„å›²ã®ã‚¨ãƒ³ãƒ‰
 
 	double min_dist = 0,now_dist=0;
-	cout << "1EEEEEEEEE" << endl;
-	//3‚Â‚Ìƒ‹[ƒg‚ğˆê‚Â‚Ìƒ‹[ƒg‚Ö
+	cout << "1ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»" << endl;
+	//3ã¤ã®ãƒ«ãƒ¼ãƒˆã‚’ä¸€ã¤ã®ãƒ«ãƒ¼ãƒˆã¸
 	for (int i = 0; i < split_1; i++) {
 		newtemp[i] = rt_1[i];
 	}
 	for (int i = split_1; i < split_2; i++) {
 		newtemp[i] = rt_2[i - split_1];
 	}
-	cout << "2EEEEEEEEE" << endl;
-	//Œ»İ‚Ì‹——£i2‚Â‚Ìƒ‹[ƒg‚Ì‹——£j‚ğÅ’Z‚Æ‚·‚é
+	cout << "2ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»" << endl;
+	//ç¾åœ¨ã®è·é›¢ï¼ˆ2ã¤ã®ãƒ«ãƒ¼ãƒˆã®è·é›¢ï¼‰ã‚’æœ€çŸ­ã¨ã™ã‚‹
 	min_dist = dist_ABC(newtemp, num);
-	cout << "3EEEEEEEEE" << endl;
+	cout << "3ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»" << endl;
 	
-	//2opt‹ß–T‚ÌÀs
+	//2optè¿‘å‚ã®å®Ÿè¡Œ
 	for (int s = count_1 - 1; s <= count_1; s++) {
 		for (int e = count_1 + 2; e > count_1; e--) {
-			cout << "4EEEEEEEEE" << endl;
+			cout << "4ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»" << endl;
 
 			for (int i = s, j = e; i < count_1 + 1; i++, j--) {
 				swap(newtemp[i], newtemp[j]);
 			}
 			
-			//ÀsŒã‚Ì‹——£‚ğ‹‚ß‚é
+			//å®Ÿè¡Œå¾Œã®è·é›¢ã‚’æ±‚ã‚ã‚‹
 			now_dist = dist_ABC(newtemp, num);
 
-			//Å’Z‚É‚Å‚ ‚é‚©
+			//æœ€çŸ­ã«ã§ã‚ã‚‹ã‹
 			if (now_dist < min_dist) {
-				//Å’Z‚Å‚ ‚é‚Æ‚«‚Ì2opt‚ğ‚·‚é”ÍˆÍ‚Ì‚Í‚¶‚ß‚Æ‚¨‚í‚è‚ğ•Û‚·‚é
+				//æœ€çŸ­ã§ã‚ã‚‹ã¨ãã®2optã‚’ã™ã‚‹ç¯„å›²ã®ã¯ã˜ã‚ã¨ãŠã‚ã‚Šã‚’ä¿æŒã™ã‚‹
 				start_2opt_position = s;
 				end_2opt_position = e;
-				cout << "ÀsEEEEEEEEE" << endl;
+				cout << "å®Ÿè¡Œãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»" << endl;
 			}
 
-			//‹t‡‚ğŒ³‚É–ß‚·
+			//é€†é †ã‚’å…ƒã«æˆ»ã™
 			for (int i = s, j = e; i < count_1 + 1; i++, j--) {
 				swap(newtemp[i], newtemp[j]);
 			}
@@ -1016,23 +1017,23 @@ void search_in_each_route(int* rt_1,int* rt_2,int count_1,int count_2) {
 		}
 
 	}
-	cout << "5EEEEEEEEE" << endl;
+	cout << "5ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»" << endl;
 
-	//Œ³‚Ìƒ‹[ƒg‚ğÅ’Z‚Ìƒ‹[ƒg‚É•ÏX
+	//å…ƒã®ãƒ«ãƒ¼ãƒˆã‚’æœ€çŸ­ã®ãƒ«ãƒ¼ãƒˆã«å¤‰æ›´
 	for (int i = start_2opt_position, j = end_2opt_position; i < count_1 + 1; i++, j--) {
 		swap(newtemp[i], newtemp[j]);
 	}
-	cout << "6EEEEEEEEE" << endl;
+	cout << "6ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»" << endl;
 
-	//‚Ü‚Æ‚ß‚½ƒ‹[ƒg‚ğ2‚Â‚Ìƒ‹[ƒg‚É–ß‚µAÅ’Z‚ÉXV
+	//ã¾ã¨ã‚ãŸãƒ«ãƒ¼ãƒˆã‚’2ã¤ã®ãƒ«ãƒ¼ãƒˆã«æˆ»ã—ã€æœ€çŸ­ã«æ›´æ–°
 	for (int i = 0; i < split_1; i++) {
 		rt_1[i] = newtemp[i];
 	}
-	cout << "7EEEEEEEEE" << endl;
+	cout << "7ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»" << endl;
 
 	for (int j = split_1; j < split_2; j++) {
 		rt_2[j - split_1] = newtemp[j];
 	}
-	cout << "8EEEEEEEEE" << endl;
+	cout << "8ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»ãƒ»" << endl;
 
 }
