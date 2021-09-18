@@ -9,13 +9,15 @@
 #include <algorithm>
 #include <string>
 #include <cmath>
+
+#include "ヘッダー.h"
 using namespace std;
 
 #define N 101
 #define WSIZE 600
 #define A 3		//運搬車の台数 att48[3],eil101[3],pcb442[5],pr2392[7]
 #define aa 1	//コストのa att48[2],eil[1],pcb442[2],pr2392[3]
-#define G 800	//初期解の個数
+#define G 800	//遺伝子の数
 #define OPT 25	//1.5-opt近傍
 
 void display();
@@ -40,7 +42,7 @@ void insert_position(int route[], int &count, bool insert_gr_start, bool insert_
 void swap(int& x, int& y);
 void search_in_each_route(int* rt_1, int* rt_2, int count_1, int count_2);
 void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E, int* rt_F, int* rt_G);
-double dist_two_route(int route[], int count);
+double dist_two_route(int route[], int count,int split_1,int split_2);
 
 int route[N];		//解（訪問順序）
 double pos[N][2];	//町の座標
@@ -123,7 +125,8 @@ void random_route(int rt[N], int seed) {
 	bool insert_end_rtF = false;
 	bool insert_end_rtG = false;
 
-	//都市をランダムでr_geneに入れる
+	
+
 	if (rt_zero) {
 		for (int g = 0; g < G; g++) {
 			for (i = 0; i < N; i++) {
@@ -148,8 +151,6 @@ void random_route(int rt[N], int seed) {
 
 		rt_zero = false;
 	}
-	
-	//運搬車が訪問する都市の数をカウントする
 	countA = 0;
 	countB = 0;
 	countC = 0;
@@ -209,7 +210,8 @@ void random_route(int rt[N], int seed) {
 
 		evABC_sort(ev_sort);
 
-		//運搬車３と５で違うよ
+		//挿入法の結果、一番距離が短いものがどれか
+		//一番距離が短いものルートに都市を追加する
 		if (ev_A == ev_sort[0]) {
 			countA++;
 			rt_A[countA] = r_gene[gg][A];
@@ -246,7 +248,8 @@ void random_route(int rt[N], int seed) {
 
 		}*/
 
-
+		//残りの都市がどのルートに入ればいいか調べる
+		//今は、ルートにそれぞれ１つは都市が入っている＆１つのルートだけ２つ目の都市が入っている
 		for (int i = A+1; i < N; i++) {
 			gr_k = sqrt(pow((gr_x - pos[r_gene[gg][i]][0]), 2) + pow((gr_y - pos[r_gene[gg][i]][1]), 2));
 
@@ -353,6 +356,7 @@ void random_route(int rt[N], int seed) {
 		}
 
 		
+		
 
 		if (countA > 1) {
 			//cout << "A突然変異" << endl;
@@ -391,7 +395,6 @@ void random_route(int rt[N], int seed) {
 			two_route_search(rt_A, rt_B, rt_C, rt_D, rt_E, rt_F, rt_G);
 		}
 
-		cout << "9・・・・・・・・・" << endl;
 
 		//今のコスト
 		
@@ -414,6 +417,7 @@ void random_route(int rt[N], int seed) {
 		}
 
 		if (now_cost < min_cost) {
+			cout << "---------------------更新" << endl;
 			min_cost = now_cost;
 			
 			for (int p = 0; p < countA + 1; p++) {
@@ -714,8 +718,12 @@ double dist_ABC(int route[], int count) {
 }
 
 //2つのルートどうしでの距離
-double dist_two_route(int route[], int count) {
-	double distance = 0;	
+double dist_two_route(int route[], int count,int split_1,int split_2) {
+	double distance = 0;
+
+	//デポとの距離を求める
+	distance += sqrt(pow((gr_x - pos[route[split_1-1]][0]), 2) + pow((gr_y - pos[route[split_1-1]][1]), 2));
+	distance += sqrt(pow((gr_x - pos[route[split_2-1]][0]), 2) + pow((gr_y - pos[route[split_2 - 1]][1]), 2));
 	for (int i = 0; i < count; i++) {
 		distance += sqrt(pow((pos[route[i]][0] - pos[route[i + 1]][0]), 2) + pow((pos[route[i]][1] - pos[route[i + 1]][1]), 2));
 	}
@@ -935,18 +943,17 @@ void insert_position(int route[],int &count,bool insert_gr_start,bool insert_end
 
 //2-optを行う2つのルートの組合せ
 void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E, int* rt_F, int* rt_G ) {
-	cout << "aaa・・・・・・・・・" << endl;
+	
 	if (num_car == 3) {
 		//att48[3]のときに実行
-		cout << "A・・・・・・・・・" << endl;
+		
 		search_in_each_route(rt_A, rt_B, countA, countB);
-		cout << "B・・・・・・・・・" << endl;
+		
 		search_in_each_route(rt_B, rt_C, countB, countC);
-		cout << "C・・・・・・・・・" << endl;
 		search_in_each_route(rt_C, rt_A, countC, countA);
 		
 	}
-	else if (num_car == 5) {
+	/*else if (num_car == 5) {
 		//pcb442[5]のときに実行
 		search_in_each_route(rt_A, rt_B, countA, countB);
 		search_in_each_route(rt_B, rt_C, countB, countC);
@@ -963,7 +970,7 @@ void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E, int
 		search_in_each_route(rt_E, rt_F, countE, countF);
 		search_in_each_route(rt_F, rt_G, countF, countG);
 		search_in_each_route(rt_G, rt_A, countG, countA);
-	}
+	}*/
 	
 }
 
@@ -976,39 +983,56 @@ void search_in_each_route(int* rt_1,int* rt_2,int count_1,int count_2) {
 	int end_2opt_position = 0;		//2optをする範囲のエンド
 
 	double min_dist = 0,now_dist=0;
-	cout << "1・・・・・・・・・" << endl;
+	double rt_1_to_rt_2 = 0, rt_2_to_rt_1 = 0;
+
+	//rt_1の最後とrt_2の最初をつなげるべきか
+	rt_1_to_rt_2= sqrt(pow((pos[rt_1[count_1]][0] - pos[rt_2[0]][0]), 2) + pow((pos[rt_1[count_1]][1] - pos[rt_2[0]][1]), 2));
+
+	//rt_2の最後とrt_1の最初をつなげるべきか
+	rt_2_to_rt_1 = sqrt(pow((pos[rt_2[count_2]][0] - pos[rt_1[0]][0]), 2) + pow((pos[rt_2[count_2]][1] - pos[rt_1[0]][1]), 2));
+
 	//3つのルートを一つのルートへ
-	for (int i = 0; i < split_1; i++) {
-		newtemp[i] = rt_1[i];
+	if (rt_1_to_rt_2 < rt_2_to_rt_1) {
+		for (int i = 0; i < split_1; i++) {
+			newtemp[i] = rt_1[i];
+		}
+		for (int i = split_1; i < split_2; i++) {
+			newtemp[i] = rt_2[i - split_1];
+		}
 	}
-	for (int i = split_1; i < split_2; i++) {
-		newtemp[i] = rt_2[i - split_1];
+	else {
+		for (int i = 0; i < split_2; i++) {
+			newtemp[i] = rt_2[i];
+		}
+		for (int i = split_2; i < split_1; i++) {
+			newtemp[i] = rt_1[i - split_2];
+		}
 	}
-	cout << "2・・・・・・・・・" << endl;
+	
+	
 	//現在の距離（2つのルートの距離）を最短とする
-	min_dist = dist_ABC(newtemp, num);
-	cout << "3・・・・・・・・・" << endl;
+	min_dist = dist_two_route(newtemp, num,split_1,split_2);
+	
 	
 	//2opt近傍の実行
 	for (int s = count_1 - 1; s <= count_1; s++) {
 		for (int e = count_1 + 2; e > count_1; e--) {
-			cout << "4・・・・・・・・・" << endl;
 
 			for (int i = s, j = e; i < count_1 + 1; i++, j--) {
 				swap(newtemp[i], newtemp[j]);
 			}
 			
 			//実行後の距離を求める
-			now_dist = dist_ABC(newtemp, num);
+			now_dist = dist_two_route(newtemp, num, split_1, split_2);
 
 			//最短にであるか
 			if (now_dist < min_dist) {
 				//最短であるときの2optをする範囲のはじめとおわりを保持する
 				start_2opt_position = s;
 				end_2opt_position = e;
-				cout << "実行・・・・・・・・・" << endl;
+				//cout << "実行・・・・・・・・・" << endl;
 			}
-
+			
 			//逆順を元に戻す
 			for (int i = s, j = e; i < count_1 + 1; i++, j--) {
 				swap(newtemp[i], newtemp[j]);
@@ -1017,23 +1041,32 @@ void search_in_each_route(int* rt_1,int* rt_2,int count_1,int count_2) {
 		}
 
 	}
-	cout << "5・・・・・・・・・" << endl;
 
 	//元のルートを最短のルートに変更
-	for (int i = start_2opt_position, j = end_2opt_position; i < count_1 + 1; i++, j--) {
-		swap(newtemp[i], newtemp[j]);
-	}
-	cout << "6・・・・・・・・・" << endl;
+	//最短が更新されたときに2opt実行
+	if (start_2opt_position != 0 && end_2opt_position != 0) {
+		cout << "実行・・・・・・・・・" << endl;
+		for (int i = start_2opt_position, j = end_2opt_position; i < count_1 + 1; i++, j--) {
+			swap(newtemp[i], newtemp[j]);
+		}
 
-	//まとめたルートを2つのルートに戻し、最短に更新
-	for (int i = 0; i < split_1; i++) {
-		rt_1[i] = newtemp[i];
+		//まとめたルートを2つのルートに戻し、最短に更新
+		if (rt_1_to_rt_2 < rt_2_to_rt_1) {
+			for (int i = 0; i < split_1; i++) {
+				rt_1[i] = newtemp[i];
+			}
+			for (int j = split_1; j < split_2; j++) {
+				rt_2[j - split_1] = newtemp[j];
+			}
+		}
+		else {
+			for (int i = 0; i < split_2; i++) {
+				rt_2[i] = newtemp[i];
+			}
+			for (int j = split_2; j < split_1; j++) {
+				rt_1[j - split_2] = newtemp[j];
+			}
+		}
+		
 	}
-	cout << "7・・・・・・・・・" << endl;
-
-	for (int j = split_1; j < split_2; j++) {
-		rt_2[j - split_1] = newtemp[j];
-	}
-	cout << "8・・・・・・・・・" << endl;
-
 }
