@@ -125,9 +125,11 @@ void random_route(int rt[N], int seed) {
 	bool insert_end_rtE = false;
 	bool insert_end_rtF = false;
 	bool insert_end_rtG = false;
+	int taboo[G][4];//タブーリスト
 
 	if (rt_zero) {
 		for (int g = 0; g < G; g++) {
+			//タブーリストに入っているかどうか
 			for (i = 0; i < N; i++) {
 				v[i] = rand();
 			}
@@ -143,9 +145,38 @@ void random_route(int rt[N], int seed) {
 				rt[i] = cid;
 				v[cid] = -1;
 			}
-			for (int k = 0; k < N; k++) {
-				r_gene[g][k] = rt[k];
+
+			for (int p = 0; p < 4; p++) {
+				//タブーリストにあるか調べる
+				//タブーリストに追加する
+				taboo[g][p] = rt[p];
 			}
+			if (memcmp(taboo, r_gene, 4)) {
+				cout << "タブーリスト" << endl;
+				//タブーリストと同じ
+				for (i = 0; i < N; i++) {
+					v[i] = rand();
+				}
+
+				for (i = 0; i < N; i++) {
+					max = -1;
+					for (j = 0; j < N; j++) {
+						if (v[j] > max) {
+							max = v[j];
+							cid = j;
+						}
+					}
+					rt[i] = cid;
+					v[cid] = -1;
+				}
+			}
+			else {
+				for (int k = 0; k < N; k++) {
+					r_gene[g][k] = rt[k];
+
+				}
+			}
+			
 		}
 
 		rt_zero = false;
@@ -417,7 +448,7 @@ void random_route(int rt[N], int seed) {
 		}
 
 		if (now_cost < min_cost) {
-			cout << "---------------------更新" << endl;
+			//cout << "---------------------更新" << endl;
 			min_cost = now_cost;
 			
 			for (int p = 0; p < countA + 1; p++) {
@@ -451,7 +482,7 @@ void random_route(int rt[N], int seed) {
 			best_countG = countG;*/
 
 		}
-		cout << gg << endl;
+		//cout << gg << endl;
 		gg++;
 		if (gg == G) {
 			ofstream writing_file;
@@ -1104,7 +1135,7 @@ void search_in_each_route(int* rt_1, int* rt_2, int count_1, int count_2) {
 	//元のルートを最短のルートに変更
 	//最短が更新されたときに2opt実行
 	if (start_2opt_position != 0 && end_2opt_position != 0) {
-		cout << "実行・・・・・・・・・" << endl;
+		//cout << "実行・・・・・・・・・" << endl;
 		for (int i = start_2opt_position, j = end_2opt_position; i < count_1 + 1; i++, j--) {
 			swap(newtemp[i], newtemp[j]);
 		}
