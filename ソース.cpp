@@ -129,7 +129,8 @@ void random_route(int rt[N], int seed) {
 	bool taboo_one = true;
 	int taboo_ct = 0;	//タブーリストの数を数えるため
 	int same_ct = 0;	//配列の値が同じ数を数えるため
-
+	bool taboo = false;	//タブーリストに含まれているかどうか
+	const int same_num = 101;	//same_num分同じ配列かどうか
 
 	if (rt_zero) {
 		/*for (int g = 0; g < G; g++) {
@@ -184,8 +185,8 @@ void random_route(int rt[N], int seed) {
 		}
 		*/
 		for (int g = 0; g < G; g++) {
-			cout << g << "--------------------" << endl;
-			cout << "same_ct:" << same_ct << endl;
+			//cout << g << "--------------------" << endl;
+			//cout << "same_ct:" << same_ct << endl;
 			for (int i = 0; i < N; i++) {
 				v[i] = rand();
 			}
@@ -205,79 +206,86 @@ void random_route(int rt[N], int seed) {
 
 			//最初だけ実行される
 			if (taboo_one) {
-				cout << "一度だけ" << endl;
+				//cout << "一度だけ" << endl;
 				taboo_one = false;
-				taboo_ct++;
-				for (int p = 0; p < 4; p++) {
-					taboo_list[g][p] = rt[p];
-					cout << "taboo_list[" << p << "]:" << taboo_list[g][p] << endl;
+
+				for (int p = 0; p < same_num; p++) {
+					taboo_list[taboo_ct][p] = rt[p];
+					//cout << "taboo_list[" << p << "]:" << taboo_list[g][p] << endl;
 				}
+				taboo_ct++;
 				for (int k = 0; k < N; k++) {
 					r_gene[g][k] = rt[k];
-					cout << "r_gene[" << k << "]:" << r_gene[g][k] << endl << endl;
+					//cout << "r_gene[" << k << "]:" << r_gene[g][k] << endl << endl;
 				}
 			}
 			else {
 				//r_geneに追加
 				for (int k = 0; k < N; k++) {
 					r_gene[g][k] = rt[k];
-					cout << "r_gene[" << k << "]:" << r_gene[g][k] << endl << endl;
+					//cout << "r_gene[" << g << "][" << k << "]:" << r_gene[g][k] << endl << endl;
 				}
 				for (int i = 0; i < taboo_ct; i++) {
-					for (int j = 0; j < 4; j++) {
-						for (int k = 0; k < 4; k++) {
+					for (int j = 0; j < same_num; j++) {
+						for (int k = 0; k < same_num; k++) {
 
 							//タブーリストに値が含まれているかどうか
 							if (r_gene[g][j] == taboo_list[i][k]) {
 								same_ct++;
-								cout << "same_ct:" << same_ct << endl;
+								//cout << "same_ct:" << same_ct << endl;
 							}
 						}
 					}
-
-					//タブーリストに値がすべて含まれているかどうか
-					if (same_ct == 4) {
-						cout << "同じ" << endl;
-						same_ct = 0;
-						//もう一度乱数を割り当てる
-						for (int i = 0; i < N; i++) {
-							v[i] = rand();
-						}
-
-						for (int i = 0; i < N; i++) {
-							max = -1;
-							for (int j = 0; j < N; j++) {
-								if (v[j] > max) {
-									max = v[j];
-									cid = j;
-								}
-							}
-							rt[i] = cid;
-							v[cid] = -1;
-						}
-						//r_geneに追加
-						for (int k = 0; k < N; k++) {
-							r_gene[g][k] = rt[k];
-							cout << "r_gene[" << k << "]:" << r_gene[g][k] << endl << endl;
-						}
+					if (same_ct == same_num) {
+						taboo = true;
+						//cout << "同じ" << endl;
 					}
-
 					same_ct = 0;
-					//タブーリストに追加
-					taboo_ct++;
-					for (int p = 0; p < 4; p++) {
-						taboo_list[taboo_ct][p] = rt[p];
-
-					}
-
-
 
 				}
+				//タブーリストに値がすべて含まれているかどうか
+				if (taboo) {
+
+					//もう一度乱数を割り当てる
+					for (int i = 0; i < N; i++) {
+						v[i] = rand();
+					}
+
+					for (int i = 0; i < N; i++) {
+						max = -1;
+						for (int j = 0; j < N; j++) {
+							if (v[j] > max) {
+								max = v[j];
+								cid = j;
+							}
+						}
+						rt[i] = cid;
+						v[cid] = -1;
+					}
+
+					//r_geneに追加
+					for (int k = 0; k < N; k++) {
+						r_gene[g][k] = rt[k];
+						//cout << "r_gene[" << g << "][" << k << "]:" << r_gene[g][k] << endl << endl;
+					}
+				}
+
+
+				//タブーリストに追加
+
+				for (int p = 0; p < same_num; p++) {
+					taboo_list[taboo_ct][p] = rt[p];
+
+				}
+				taboo_ct++;
+
+
+
 
 
 			}
 		}
-
+		cout << taboo_ct << endl;
 		rt_zero = false;
 	}
 	countA = 0;
@@ -581,7 +589,7 @@ void random_route(int rt[N], int seed) {
 			best_countG = countG;*/
 
 		}
-		//cout << gg << endl;
+		cout << gg << endl;
 		gg++;
 		if (gg == G) {
 			ofstream writing_file;
