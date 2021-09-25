@@ -40,9 +40,11 @@ void each_route_min(int route[], int insert_city, double gr_k, int count, double
 void insert_position(int route[], int &count, bool insert_gr_start, bool insert_end_rt, int insert_city, int min_rt);
 void swap(int& x, int& y);
 void search_in_each_route(int* rt_1, int* rt_2, int count_1, int count_2);
-void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E, int* rt_F, int* rt_G);
+void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E);
+	//int* rt_F, int* rt_G);
 double dist_two_route(int route[], int count,int split_1,int split_2);
 double dist_2opt(int rt_temp[], int start, int end);
+void randam_array(int* rt);
 
 int route[N];		//解（訪問順序）
 double pos[N][2];	//町の座標
@@ -56,16 +58,16 @@ int rt_B[N], countB = 0;
 int rt_C[N], countC = 0;
 int rt_D[N], countD = 0;
 int rt_E[N], countE = 0;
-int rt_F[N], countF = 0;
-int rt_G[N], countG = 0;
+//int rt_F[N], countF = 0;
+//int rt_G[N], countG = 0;
 
 int best_countA = 0;
 int best_countB = 0;
 int best_countC = 0;
 int best_countD = 0;
 int best_countE = 0;
-int best_countF = 0;
-int best_countG = 0;
+//int best_countF = 0;
+//int best_countG = 0;
 
 int best_A[N], best_B[N], best_C[N], best_D[N], best_E[N], best_F[N], best_G[N];
 bool rt_zero = true;
@@ -113,7 +115,7 @@ int main(int argc, char* argv[])
 }
 
 void random_route(int rt[N], int seed) {
-	int i, j, v[N], max, cid;
+	//int i, j, v[N], max, cid;
 	double gr_A, gr_B, gr_C, A_k, B_k, C_k, gr_k, ev_A, ev_B, ev_C;
 	double gr_D, gr_E, gr_F,gr_G, D_k, E_k, F_k, G_k, ev_D, ev_E, ev_F,ev_G, gr_D_end, gr_E_end, gr_F_end,gr_G_end;
 	double ev_sort[A] = { 0 };
@@ -130,8 +132,9 @@ void random_route(int rt[N], int seed) {
 	int taboo_ct = 0;	//タブーリストの数を数えるため
 	int same_ct = 0;	//配列の値が同じ数を数えるため
 	bool taboo = false;	//タブーリストに含まれているかどうか
-	const int same_num = 101;	//same_num分同じ配列かどうか
-
+	const int same_start = 10;	//same_num分同じ配列かどうか
+	const int same_end = 100;
+	const int same_num = 100;
 	if (rt_zero) {
 		/*for (int g = 0; g < G; g++) {
 			//タブーリストに入っているかどうか
@@ -185,9 +188,9 @@ void random_route(int rt[N], int seed) {
 		}
 		*/
 		for (int g = 0; g < G; g++) {
-			//cout << g << "--------------------" << endl;
-			//cout << "same_ct:" << same_ct << endl;
-			for (int i = 0; i < N; i++) {
+			
+			randam_array(rt);
+			/*for (int i = 0; i < N; i++) {
 				v[i] = rand();
 			}
 
@@ -201,7 +204,7 @@ void random_route(int rt[N], int seed) {
 				}
 				rt[i] = cid;
 				v[cid] = -1;
-			}
+			}*/
 
 
 			//最初だけ実行される
@@ -226,7 +229,7 @@ void random_route(int rt[N], int seed) {
 					//cout << "r_gene[" << g << "][" << k << "]:" << r_gene[g][k] << endl << endl;
 				}
 				for (int i = 0; i < taboo_ct; i++) {
-					for (int j = 0; j < same_num; j++) {
+					for (int j = 0;j < same_num; j++) {
 						for (int k = 0; k < same_num; k++) {
 
 							//タブーリストに値が含まれているかどうか
@@ -236,7 +239,7 @@ void random_route(int rt[N], int seed) {
 							}
 						}
 					}
-					if (same_ct == same_num) {
+					if (same_ct==same_num) {
 						taboo = true;
 						//cout << "同じ" << endl;
 					}
@@ -247,7 +250,8 @@ void random_route(int rt[N], int seed) {
 				if (taboo) {
 
 					//もう一度乱数を割り当てる
-					for (int i = 0; i < N; i++) {
+					randam_array(rt);
+					/*for (int i = 0; i < N; i++) {
 						v[i] = rand();
 					}
 
@@ -261,7 +265,7 @@ void random_route(int rt[N], int seed) {
 						}
 						rt[i] = cid;
 						v[cid] = -1;
-					}
+					}*/
 
 					//r_geneに追加
 					for (int k = 0; k < N; k++) {
@@ -279,10 +283,7 @@ void random_route(int rt[N], int seed) {
 				}
 				taboo_ct++;
 
-
-
-
-
+				taboo = false;
 			}
 		}
 		cout << taboo_ct << endl;
@@ -293,8 +294,8 @@ void random_route(int rt[N], int seed) {
 	countC = 0;
 	countD = 0;
 	countE = 0;
-	countF = 0;
-	countG = 0;
+	//countF = 0;
+	//countG = 0;
 
 	if (gg < G) {
 		
@@ -530,7 +531,8 @@ void random_route(int rt[N], int seed) {
 		//2つの経路ごとの2opt近傍
 		if (countA > 1 && countB > 1 && countC > 1 ){
 			//&& countD > 1 && countE && countF > 1 && countG > 1) {
-			two_route_search(rt_A, rt_B, rt_C, rt_D, rt_E, rt_F, rt_G);
+			two_route_search(rt_A, rt_B, rt_C, rt_D, rt_E);
+				//rt_F, rt_G);
 		}
 
 
@@ -541,8 +543,8 @@ void random_route(int rt[N], int seed) {
 		dist_C = dist_ABC(rt_C, countC);
 		dist_D = dist_ABC(rt_D, countD);
 		dist_E = dist_ABC(rt_E, countE);
-		dist_F = dist_ABC(rt_F, countF);
-		dist_G = dist_ABC(rt_G, countG);
+		//dist_F = dist_ABC(rt_F, countF);
+		//dist_G = dist_ABC(rt_G, countG);
 
 		if (A == 3) {
 			now_cost = cost3(dist_A, dist_B, dist_C);
@@ -605,6 +607,27 @@ void random_route(int rt[N], int seed) {
 
 	glutPostRedisplay();
 	
+}
+
+//初期解生成でランダムに配列を求める関数
+void randam_array(int* rt) {
+	int v[N], cid = 0, max = 0;
+
+	for (int i = 0; i < N; i++) {
+		v[i] = rand();
+	}
+
+	for (int i = 0; i < N; i++) {
+		max = -1;
+		for (int j = 0; j < N; j++) {
+			if (v[j] > max) {
+				max = v[j];
+				cid = j;
+			}
+		}
+		rt[i] = cid;
+		v[cid] = -1;
+	}
 }
 
 void draw_solution(int rt[N], double position[N][2]) {
@@ -1139,7 +1162,8 @@ void insert_position(int route[],int &count,bool insert_gr_start,bool insert_end
 }
 
 //2-optを行う2つのルートの組合せ
-void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E, int* rt_F, int* rt_G ) {
+void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E){
+	//int* rt_F, int* rt_G ) {
 	
 	if (num_car == 3) {
 		//att48[3]のときに実行
