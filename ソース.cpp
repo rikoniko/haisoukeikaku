@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
 }
 
 void random_route(int rt[N], int seed) {
-	//int i, j, v[N], max, cid;
+	int v[N], max, cid;
 	double gr_A, gr_B, gr_C, A_k, B_k, C_k, gr_k, ev_A, ev_B, ev_C;
 	double gr_D, gr_E, gr_F,gr_G, D_k, E_k, F_k, G_k, ev_D, ev_E, ev_F,ev_G, gr_D_end, gr_E_end, gr_F_end,gr_G_end;
 	double ev_sort[A] = { 0 };
@@ -127,14 +127,20 @@ void random_route(int rt[N], int seed) {
 	bool insert_end_rtE = false;
 	bool insert_end_rtF = false;
 	bool insert_end_rtG = false;
-	int taboo_list[G][N];
+	//一次元ずつnewで確保する
+	int **taboo_list=new int*[G];
+	for (int i = 0; i < G; i++) {
+		taboo_list[i] = new int[N];
+	}
+
 	bool taboo_one = true;
 	int taboo_ct = 0;	//タブーリストの数を数えるため
 	int same_ct = 0;	//配列の値が同じ数を数えるため
-	bool taboo = false;	//タブーリストに含まれているかどうか
-	const int same_start = 10;	//same_num分同じ配列かどうか
-	const int same_end = 100;
+	bool not_taboo = true;	//タブーリストに含まれているかどうか
+	const int same_start = 30;	//same_num分同じ配列かどうか
+	const int same_end = 50;
 	const int same_num = 100;
+
 	if (rt_zero) {
 		/*for (int g = 0; g < G; g++) {
 			//タブーリストに入っているかどうか
@@ -189,8 +195,8 @@ void random_route(int rt[N], int seed) {
 		*/
 		for (int g = 0; g < G; g++) {
 			
-			randam_array(rt);
-			/*for (int i = 0; i < N; i++) {
+			//randam_array(rt);
+			for (int i = 0; i < N; i++) {
 				v[i] = rand();
 			}
 
@@ -204,8 +210,17 @@ void random_route(int rt[N], int seed) {
 				}
 				rt[i] = cid;
 				v[cid] = -1;
-			}*/
-
+			}
+			if (100 == g) {
+				//配列を初期化する
+				for (int i = 0; i < taboo_ct; i++) {
+					for (int j = 0; j < same_num; j++) {
+						taboo_list[i][j] = 0;
+					}
+				}
+				taboo_ct = 0;
+				taboo_one = true;
+			}
 
 			//最初だけ実行される
 			if (taboo_one) {
@@ -224,30 +239,75 @@ void random_route(int rt[N], int seed) {
 			}
 			else {
 				//r_geneに追加
-				for (int k = 0; k < N; k++) {
+				/*for (int k = 0; k < N; k++) {
 					r_gene[g][k] = rt[k];
 					//cout << "r_gene[" << g << "][" << k << "]:" << r_gene[g][k] << endl << endl;
-				}
+				}*/
+				
 				for (int i = 0; i < taboo_ct; i++) {
-					for (int j = 0;j < same_num; j++) {
-						for (int k = 0; k < same_num; k++) {
 
+					for (int j = 0; j < same_num; j++) {
+						for (int k = 0; k < same_num; k++) {
+							
 							//タブーリストに値が含まれているかどうか
-							if (r_gene[g][j] == taboo_list[i][k]) {
+							if (rt[j] == taboo_list[i][k]) {
 								same_ct++;
 								//cout << "same_ct:" << same_ct << endl;
 							}
 						}
 					}
-					if (same_ct==same_num) {
-						taboo = true;
+					if(same_ct==same_num){
+					//if (same_start<=same_ct&&same_ct<=same_end) {
+						not_taboo = false;
 						//cout << "同じ" << endl;
 					}
 					same_ct = 0;
+				}
 
+				//タブーリストに含まれている間は探索する
+				if (!not_taboo) {
+					//randam_array(rt);
+					for (int i = 0; i < N; i++) {
+						v[i] = rand();
+					}
+
+					for (int i = 0; i < N; i++) {
+						max = -1;
+						for (int j = 0; j < N; j++) {
+							if (v[j] > max) {
+								max = v[j];
+								cid = j;
+							}
+						}
+						rt[i] = cid;
+						v[cid] = -1;
+					}
+					for (int i = 0; i < taboo_ct; i++) {
+
+						for (int j = 0; j < same_num; j++) {
+							for (int k = 0; k < same_num; k++) {
+
+								//タブーリストに値が含まれているかどうか
+								if (rt[j] == taboo_list[i][k]) {
+									same_ct++;
+									//cout << "same_ct:" << same_ct << endl;
+								}
+							}
+						}
+						if (!(same_start <= same_ct && same_ct <= same_num)) {
+							not_taboo = true;
+							//cout << "同じ" << endl;
+						}
+						same_ct = 0;
+					}
+				}
+				//タブーリストに含まれていないものがr_geneとなる
+				for (int k = 0; k < N; k++) {
+					r_gene[g][k] = rt[k];
+					//cout << "r_gene[" << g << "][" << k << "]:" << r_gene[g][k] << endl << endl;
 				}
 				//タブーリストに値がすべて含まれているかどうか
-				if (taboo) {
+				/*if (taboo) {
 
 					//もう一度乱数を割り当てる
 					randam_array(rt);
@@ -265,14 +325,14 @@ void random_route(int rt[N], int seed) {
 						}
 						rt[i] = cid;
 						v[cid] = -1;
-					}*/
+					}
 
 					//r_geneに追加
 					for (int k = 0; k < N; k++) {
 						r_gene[g][k] = rt[k];
 						//cout << "r_gene[" << g << "][" << k << "]:" << r_gene[g][k] << endl << endl;
 					}
-				}
+				}*/
 
 
 				//タブーリストに追加
@@ -283,12 +343,19 @@ void random_route(int rt[N], int seed) {
 				}
 				taboo_ct++;
 
-				taboo = false;
+				not_taboo = true;
 			}
 		}
 		cout << taboo_ct << endl;
 		rt_zero = false;
 	}
+
+	//一次元ずつ解放する
+	for (int i = 0; i < G; i++) {
+		delete[] taboo_list[i];
+	}
+	delete[] taboo_list;
+
 	countA = 0;
 	countB = 0;
 	countC = 0;
