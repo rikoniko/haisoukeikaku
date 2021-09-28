@@ -12,10 +12,10 @@
 #include <fstream>
 using namespace std;
 
-#define N 101
+#define N 48
 #define WSIZE 600
 #define A 3		//運搬車の台数 att48[3],eil101[3],pcb442[5],pr2392[7]
-#define aa 1	//コストのa att48[2],eil[1],pcb442[2],pr2392[3]
+#define aa 2	//コストのa att48[2],eil[1],pcb442[2],pr2392[3]
 #define G 800	//遺伝子の数
 #define OPT 25	//1.5-opt近傍
 
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
 	glutIdleFunc(idle);
 
 	//ファイルを開く
-	if ((fp = fopen("eil101.txt", "r")) == NULL) {
+	if ((fp = fopen("att48.txt", "r")) == NULL) {
 		printf("no file\n");
 		exit(0);
 	}
@@ -139,7 +139,7 @@ void random_route(int rt[N], int seed) {
 	bool not_taboo = true;	//タブーリストに含まれているかどうか
 	const int same_start = 30;	//same_num分同じ配列かどうか
 	const int same_end = 50;
-	const int same_num = 100;
+	const int same_num = 47;
 
 	if (rt_zero) {
 		/*for (int g = 0; g < G; g++) {
@@ -211,7 +211,8 @@ void random_route(int rt[N], int seed) {
 				rt[i] = cid;
 				v[cid] = -1;
 			}
-			if (100 == g) {
+
+			/*if (400 == g) {
 				//配列を初期化する
 				for (int i = 0; i < taboo_ct; i++) {
 					for (int j = 0; j < same_num; j++) {
@@ -220,7 +221,7 @@ void random_route(int rt[N], int seed) {
 				}
 				taboo_ct = 0;
 				taboo_one = true;
-			}
+			}*/
 
 			//最初だけ実行される
 			if (taboo_one) {
@@ -294,12 +295,13 @@ void random_route(int rt[N], int seed) {
 								}
 							}
 						}
-						if (!(same_start <= same_ct && same_ct <= same_num)) {
+						if (same_ct!=same_num) {
 							not_taboo = true;
 							//cout << "同じ" << endl;
 						}
 						same_ct = 0;
 					}
+					//not_taboo = true;
 				}
 				//タブーリストに含まれていないものがr_geneとなる
 				for (int k = 0; k < N; k++) {
