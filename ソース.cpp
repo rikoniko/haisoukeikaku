@@ -10,6 +10,7 @@
 #include <string>
 #include <cmath>
 #include <fstream>
+#include <random>
 using namespace std;
 
 #define N 48
@@ -141,63 +142,18 @@ void random_route(int rt[N], int seed) {
 	const int same_end = 50;
 	const int same_num = 47;
 
+	std::random_device seed_gen;
+	std::mt19937 engine(seed_gen());
+
 	if (rt_zero) {
-		/*for (int g = 0; g < G; g++) {
-			//タブーリストに入っているかどうか
-			for (i = 0; i < N; i++) {
-				v[i] = rand();
-			}
-
-			for (i = 0; i < N; i++) {
-				max = -1;
-				for (j = 0; j < N; j++) {
-					if (v[j] > max) {
-						max = v[j];
-						cid = j;
-					}
-				}
-				rt[i] = cid;
-				v[cid] = -1;
-			}
-
-			for (int p = 0; p < 4; p++) {
-				//タブーリストにあるか調べる
-				//タブーリストに追加する
-				taboo[g][p] = rt[p];
-			}
-			if (memcmp(taboo, r_gene, 4)) {
-				cout << "タブーリスト" << endl;
-				//タブーリストと同じ
-				for (i = 0; i < N; i++) {
-					v[i] = rand();
-				}
-
-				for (i = 0; i < N; i++) {
-					max = -1;
-					for (j = 0; j < N; j++) {
-						if (v[j] > max) {
-							max = v[j];
-							cid = j;
-						}
-					}
-					rt[i] = cid;
-					v[cid] = -1;
-				}
-			}
-			else {
-				for (int k = 0; k < N; k++) {
-					r_gene[g][k] = rt[k];
-
-				}
-			}
-			
-		}
-		*/
+		
 		for (int g = 0; g < G; g++) {
 			
 			//randam_array(rt);
 			for (int i = 0; i < N; i++) {
-				v[i] = rand();
+				std::uint32_t result = rand();
+				v[i] = result;
+				//cout << v[i] << endl;
 			}
 
 			for (int i = 0; i < N; i++) {
@@ -210,9 +166,10 @@ void random_route(int rt[N], int seed) {
 				}
 				rt[i] = cid;
 				v[cid] = -1;
+				
 			}
 
-			/*if (400 == g) {
+			if ((G % 200) == 0) {
 				//配列を初期化する
 				for (int i = 0; i < taboo_ct; i++) {
 					for (int j = 0; j < same_num; j++) {
@@ -221,7 +178,7 @@ void random_route(int rt[N], int seed) {
 				}
 				taboo_ct = 0;
 				taboo_one = true;
-			}*/
+			}
 
 			//最初だけ実行される
 			if (taboo_one) {
@@ -308,34 +265,7 @@ void random_route(int rt[N], int seed) {
 					r_gene[g][k] = rt[k];
 					//cout << "r_gene[" << g << "][" << k << "]:" << r_gene[g][k] << endl << endl;
 				}
-				//タブーリストに値がすべて含まれているかどうか
-				/*if (taboo) {
-
-					//もう一度乱数を割り当てる
-					randam_array(rt);
-					/*for (int i = 0; i < N; i++) {
-						v[i] = rand();
-					}
-
-					for (int i = 0; i < N; i++) {
-						max = -1;
-						for (int j = 0; j < N; j++) {
-							if (v[j] > max) {
-								max = v[j];
-								cid = j;
-							}
-						}
-						rt[i] = cid;
-						v[cid] = -1;
-					}
-
-					//r_geneに追加
-					for (int k = 0; k < N; k++) {
-						r_gene[g][k] = rt[k];
-						//cout << "r_gene[" << g << "][" << k << "]:" << r_gene[g][k] << endl << endl;
-					}
-				}*/
-
+				
 
 				//タブーリストに追加
 
