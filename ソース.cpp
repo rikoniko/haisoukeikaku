@@ -13,10 +13,10 @@
 #include <random>
 using namespace std;
 
-#define N 48
+#define N 101
 #define WSIZE 600
 #define A 3		//運搬車の台数 att48[3],eil101[3],pcb442[5],pr2392[7]
-#define aa 2	//コストのa att48[2],eil[1],pcb442[2],pr2392[3]
+#define aa 1	//コストのa att48[2],eil[1],pcb442[2],pr2392[3]
 #define G 800	//遺伝子の数
 #define OPT 25	//1.5-opt近傍
 
@@ -45,7 +45,7 @@ void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E);
 	//int* rt_F, int* rt_G);
 double dist_two_route(int route[], int count,int split_1,int split_2);
 double dist_2opt(int rt_temp[], int start, int end);
-void randam_array(int* rt);
+uint64_t get_rand_range(uint64_t min_val, uint64_t max_val);//範囲を指定した乱数を生成
 
 int route[N];		//解（訪問順序）
 double pos[N][2];	//町の座標
@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
 	FILE* fp;
 	int i, j;
 
-	srand(time(NULL));
+	//srand(time(NULL));
 	//グラフィック用関数．削除するな！
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(WSIZE, WSIZE);
@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 	glutIdleFunc(idle);
 
 	//ファイルを開く
-	if ((fp = fopen("att48.txt", "r")) == NULL) {
+	if ((fp = fopen("eil101.txt", "r")) == NULL) {
 		printf("no file\n");
 		exit(0);
 	}
@@ -140,7 +140,7 @@ void random_route(int rt[N], int seed) {
 	bool not_taboo = true;	//タブーリストに含まれているかどうか
 	const int same_start = 30;	//same_num分同じ配列かどうか
 	const int same_end = 50;
-	const int same_num = 47;
+	const int same_num = N-1;
 
 	std::random_device seed_gen;
 	std::mt19937 engine(seed_gen());
@@ -168,6 +168,7 @@ void random_route(int rt[N], int seed) {
 				v[cid] = -1;
 				
 			}
+
 
 			if ((G % 200) == 0) {
 				//配列を初期化する
@@ -608,26 +609,7 @@ void random_route(int rt[N], int seed) {
 	
 }
 
-//初期解生成でランダムに配列を求める関数
-void randam_array(int* rt) {
-	int v[N], cid = 0, max = 0;
 
-	for (int i = 0; i < N; i++) {
-		v[i] = rand();
-	}
-
-	for (int i = 0; i < N; i++) {
-		max = -1;
-		for (int j = 0; j < N; j++) {
-			if (v[j] > max) {
-				max = v[j];
-				cid = j;
-			}
-		}
-		rt[i] = cid;
-		v[cid] = -1;
-	}
-}
 
 void draw_solution(int rt[N], double position[N][2]) {
 	
@@ -776,6 +758,14 @@ void drawBitmapString(void* font, char* string)
 		glutBitmapCharacter(font, *string++);
 
 	glPopAttrib();
+}
+
+uint64_t get_rand_range(uint64_t min_val, uint64_t max_val) {
+	static std::mt19937_64 mt64(0);
+
+	std::uniform_int_distribution<uint64_t> get_rand_uni_int(min_val, max_val);
+
+	return get_rand_uni_int(mt64);
 }
 
 void gravity() {
