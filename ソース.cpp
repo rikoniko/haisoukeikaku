@@ -75,6 +75,7 @@ bool rt_zero = true;
 double min_cost=100;
 int r_gene[G + 1][N];
 int gg = 0;		//遺伝子の数を数えるよう
+int no_update = 0;
 
 void idle() {
 	
@@ -141,6 +142,8 @@ void random_route(int rt[N], int seed) {
 	const int same_start = 30;	//same_num分同じ配列かどうか
 	const int same_end = 50;
 	const int same_num = N-1;
+		//最短距離が更新されているかを確かめるため
+	int update_ct = 0;	//rtを取り直すときの生成に使う
 
 	std::random_device seed_gen;
 	std::mt19937 engine(seed_gen());
@@ -298,6 +301,38 @@ void random_route(int rt[N], int seed) {
 	//countG = 0;
 
 	if (gg < G) {
+		
+		cout << "no_update=" << no_update << endl;
+		if (no_update>20) {
+			no_update = 0;
+			cout << "ここ" << endl;
+			update_ct = gg;
+			for (int up_g = update_ct; up_g < G; up_g++) {
+				for (int i = 0; i < N; i++) {
+					std::uint32_t result = rand();
+					v[i] = result;
+					//cout << v[i] << endl;
+				}
+
+				for (int i = 0; i < N; i++) {
+					max = -1;
+					for (int j = 0; j < N; j++) {
+						if (v[j] > max) {
+							max = v[j];
+							cid = j;
+						}
+					}
+					rt[i] = cid;
+					v[cid] = -1;
+
+				}
+				for (int k = 0; k < N; k++) {
+					r_gene[up_g][k] = rt[k];
+				}
+			}
+		 
+		}
+
 		
 		rt_A[countA] = r_gene[gg][0];
 		rt_B[countB] = r_gene[gg][1];
@@ -557,8 +592,9 @@ void random_route(int rt[N], int seed) {
 		}
 
 		if (now_cost < min_cost) {
-			//cout << "---------------------更新" << endl;
+			cout << "---------------------更新" << endl;
 			min_cost = now_cost;
+			no_update = 0;	//更新されたから0に戻す
 			
 			for (int p = 0; p < countA + 1; p++) {
 				best_A[p] = rt_A[p];
@@ -593,6 +629,7 @@ void random_route(int rt[N], int seed) {
 		}
 		cout << gg << endl;
 		gg++;
+		no_update++;
 		if (gg == G) {
 			ofstream writing_file;
 			string filename = "result.csv";
