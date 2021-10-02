@@ -13,11 +13,11 @@
 #include <random>
 using namespace std;
 
-#define N 101
+#define N 442
 #define WSIZE 600
-#define A 3		//運搬車の台数 att48[3],eil101[3],pcb442[5],pr2392[7]
-#define aa 1	//コストのa att48[2],eil[1],pcb442[2],pr2392[3]
-#define G 800	//遺伝子の数
+#define A 5		//運搬車の台数 att48[3],eil101[3],pcb442[5],pr2392[7]
+#define aa 2	//コストのa att48[2],eil[1],pcb442[2],pr2392[3]
+#define G 200	//遺伝子の数
 #define OPT 25	//1.5-opt近傍
 
 void display();
@@ -28,24 +28,24 @@ void random_route(int rt[N], int seed);
 void gravity();
 void routeInsert(int temp[], int n, int newdata, int k);
 void evABC_sort(double ev_sort[]);
-double ev_start2k_k2end(int rt_ABC[],int start_or_end, int  rt);
+double ev_start2k_k2end(int rt_ABC[], int start_or_end, int  rt);
 void render_string(float x, float y, const char* str, double cost);
 double cost3(double dist_A, double dist_B, double dist_C);
 double cost5(double dist_A, double dist_B, double dist_C, double dist_D, double dist_E);
 double cost7(double dist_A, double dist_B, double dist_C, double dist_D, double dist_E, double dist_F, double dist_G);
 double dist_ABC(int route[], int count);
-void mutation(int *route, int count);
+void mutation(int* route, int count);
 int GetRandom(int min, int max);
-double insert_but_gr(int route[],int insert_city,int j);
+double insert_but_gr(int route[], int insert_city, int j);
 void each_route_min(int route[], int insert_city, double gr_k, int count, double& min, int& min_rt, bool& insert_gr_start, bool& insert_end_rt);
-void insert_position(int route[], int &count, bool insert_gr_start, bool insert_end_rt, int insert_city, int min_rt);
+void insert_position(int route[], int& count, bool insert_gr_start, bool insert_end_rt, int insert_city, int min_rt);
 void swap(int& x, int& y);
 void search_in_each_route(int* rt_1, int* rt_2, int count_1, int count_2);
 void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E);
-	//int* rt_F, int* rt_G);
-double dist_two_route(int route[], int count,int split_1,int split_2);
+//int* rt_F, int* rt_G);
+double dist_two_route(int route[], int count, int split_1, int split_2);
 double dist_2opt(int rt_temp[], int start, int end);
-uint64_t get_rand_range(uint64_t min_val, uint64_t max_val);//範囲を指定した乱数を生成
+void randam_array(int* rt);
 
 int route[N];		//解（訪問順序）
 double pos[N][2];	//町の座標
@@ -59,28 +59,25 @@ int rt_B[N], countB = 0;
 int rt_C[N], countC = 0;
 int rt_D[N], countD = 0;
 int rt_E[N], countE = 0;
-//int rt_F[N], countF = 0;
-//int rt_G[N], countG = 0;
+
 
 int best_countA = 0;
 int best_countB = 0;
 int best_countC = 0;
 int best_countD = 0;
 int best_countE = 0;
-//int best_countF = 0;
-//int best_countG = 0;
+
 
 int best_A[N], best_B[N], best_C[N], best_D[N], best_E[N], best_F[N], best_G[N];
 bool rt_zero = true;
-double min_cost=100;
+double min_cost = 100;
 int r_gene[G + 1][N];
 int gg = 0;		//遺伝子の数を数えるよう
-int no_update = 0;
 
 void idle() {
-	
+
 	random_route(route, rand());
-	
+
 }
 
 int main(int argc, char* argv[])
@@ -88,7 +85,7 @@ int main(int argc, char* argv[])
 	FILE* fp;
 	int i, j;
 
-	//srand(time(NULL));
+	srand(time(NULL));
 	//グラフィック用関数．削除するな！
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(WSIZE, WSIZE);
@@ -102,7 +99,7 @@ int main(int argc, char* argv[])
 	glutIdleFunc(idle);
 
 	//ファイルを開く
-	if ((fp = fopen("eil101.txt", "r")) == NULL) {
+	if ((fp = fopen("pcb442.txt", "r")) == NULL) {
 		printf("no file\n");
 		exit(0);
 	}
@@ -113,24 +110,23 @@ int main(int argc, char* argv[])
 	}
 	fclose(fp);
 	glutMainLoop();//グラフィック用関数．削除するな！
-	
+
 }
 
 void random_route(int rt[N], int seed) {
 	int v[N], max, cid;
 	double gr_A, gr_B, gr_C, A_k, B_k, C_k, gr_k, ev_A, ev_B, ev_C;
-	double gr_D, gr_E, gr_F,gr_G, D_k, E_k, F_k, G_k, ev_D, ev_E, ev_F,ev_G, gr_D_end, gr_E_end, gr_F_end,gr_G_end;
+	double gr_D, gr_E, D_k, E_k, ev_D, ev_E,  gr_D_end, gr_E_end;
 	double ev_sort[A] = { 0 };
-	double dist_A,dist_B,dist_C, dist_D, dist_E, dist_F, dist_G,now_cost=0;
+	double dist_A, dist_B, dist_C, dist_D, dist_E, now_cost = 0;
 	bool insert_end_rtA = false;
 	bool insert_end_rtB = false;
 	bool insert_end_rtC = false;
 	bool insert_end_rtD = false;
 	bool insert_end_rtE = false;
-	bool insert_end_rtF = false;
-	bool insert_end_rtG = false;
+
 	//一次元ずつnewで確保する
-	int **taboo_list=new int*[G];
+	int** taboo_list = new int* [G];
 	for (int i = 0; i < G; i++) {
 		taboo_list[i] = new int[N];
 	}
@@ -141,17 +137,15 @@ void random_route(int rt[N], int seed) {
 	bool not_taboo = true;	//タブーリストに含まれているかどうか
 	const int same_start = 30;	//same_num分同じ配列かどうか
 	const int same_end = 50;
-	const int same_num = N-1;
-		//最短距離が更新されているかを確かめるため
-	int update_ct = 0;	//rtを取り直すときの生成に使う
+	const int same_num = 441;
 
 	std::random_device seed_gen;
 	std::mt19937 engine(seed_gen());
 
 	if (rt_zero) {
-		
+
 		for (int g = 0; g < G; g++) {
-			
+
 			//randam_array(rt);
 			for (int i = 0; i < N; i++) {
 				std::uint32_t result = rand();
@@ -169,11 +163,10 @@ void random_route(int rt[N], int seed) {
 				}
 				rt[i] = cid;
 				v[cid] = -1;
-				
+
 			}
 
-
-			if ((G % 200) == 0) {
+			/*if ((G % 200) == 0) {
 				//配列を初期化する
 				for (int i = 0; i < taboo_ct; i++) {
 					for (int j = 0; j < same_num; j++) {
@@ -182,7 +175,7 @@ void random_route(int rt[N], int seed) {
 				}
 				taboo_ct = 0;
 				taboo_one = true;
-			}
+			}*/
 
 			//最初だけ実行される
 			if (taboo_one) {
@@ -205,12 +198,12 @@ void random_route(int rt[N], int seed) {
 					r_gene[g][k] = rt[k];
 					//cout << "r_gene[" << g << "][" << k << "]:" << r_gene[g][k] << endl << endl;
 				}*/
-				
+
 				for (int i = 0; i < taboo_ct; i++) {
 
 					for (int j = 0; j < same_num; j++) {
 						for (int k = 0; k < same_num; k++) {
-							
+
 							//タブーリストに値が含まれているかどうか
 							if (rt[j] == taboo_list[i][k]) {
 								same_ct++;
@@ -218,8 +211,8 @@ void random_route(int rt[N], int seed) {
 							}
 						}
 					}
-					if(same_ct==same_num){
-					//if (same_start<=same_ct&&same_ct<=same_end) {
+					if (same_ct == same_num) {
+						//if (same_start<=same_ct&&same_ct<=same_end) {
 						not_taboo = false;
 						//cout << "同じ" << endl;
 					}
@@ -256,7 +249,7 @@ void random_route(int rt[N], int seed) {
 								}
 							}
 						}
-						if (same_ct!=same_num) {
+						if (same_ct != same_num) {
 							not_taboo = true;
 							//cout << "同じ" << endl;
 						}
@@ -269,7 +262,7 @@ void random_route(int rt[N], int seed) {
 					r_gene[g][k] = rt[k];
 					//cout << "r_gene[" << g << "][" << k << "]:" << r_gene[g][k] << endl << endl;
 				}
-				
+
 
 				//タブーリストに追加
 
@@ -297,90 +290,44 @@ void random_route(int rt[N], int seed) {
 	countC = 0;
 	countD = 0;
 	countE = 0;
-	//countF = 0;
-	//countG = 0;
-
+	
 	if (gg < G) {
-		
-		cout << "no_update=" << no_update << endl;
-		if (no_update>20) {
-			no_update = 0;
-			cout << "ここ" << endl;
-			update_ct = gg;
-			for (int up_g = update_ct; up_g < G; up_g++) {
-				for (int i = 0; i < N; i++) {
-					std::uint32_t result = rand();
-					v[i] = result;
-					//cout << v[i] << endl;
-				}
 
-				for (int i = 0; i < N; i++) {
-					max = -1;
-					for (int j = 0; j < N; j++) {
-						if (v[j] > max) {
-							max = v[j];
-							cid = j;
-						}
-					}
-					rt[i] = cid;
-					v[cid] = -1;
-
-				}
-				for (int k = 0; k < N; k++) {
-					r_gene[up_g][k] = rt[k];
-				}
-			}
-		 
-		}
-
-		
 		rt_A[countA] = r_gene[gg][0];
 		rt_B[countB] = r_gene[gg][1];
 		rt_C[countC] = r_gene[gg][2];
-		/*rt_D[countD] = r_gene[gg][3];
+		rt_D[countD] = r_gene[gg][3];
 		rt_E[countE] = r_gene[gg][4];
-		rt_F[countF] = r_gene[gg][5];
-		rt_G[countG] = r_gene[gg][6];*/
-
+		
 		gravity();
 		//cout << gr_x << ":" << gr_y << endl;
-		
+
 		gr_A = sqrt(pow((gr_x - pos[rt_A[0]][0]), 2) + pow((gr_y - pos[rt_A[0]][1]), 2));
 		gr_B = sqrt(pow((gr_x - pos[rt_B[0]][0]), 2) + pow((gr_y - pos[rt_B[0]][1]), 2));
 		gr_C = sqrt(pow((gr_x - pos[rt_C[0]][0]), 2) + pow((gr_y - pos[rt_C[0]][1]), 2));
-		/*gr_D = sqrt(pow((gr_x - pos[rt_D[0]][0]), 2) + pow((gr_y - pos[rt_D[0]][1]), 2));
+		gr_D = sqrt(pow((gr_x - pos[rt_D[0]][0]), 2) + pow((gr_y - pos[rt_D[0]][1]), 2));
 		gr_E = sqrt(pow((gr_x - pos[rt_E[0]][0]), 2) + pow((gr_y - pos[rt_E[0]][1]), 2));
-		gr_F = sqrt(pow((gr_x - pos[rt_F[0]][0]), 2) + pow((gr_y - pos[rt_F[0]][1]), 2));
-		gr_G = sqrt(pow((gr_x - pos[rt_G[0]][0]), 2) + pow((gr_y - pos[rt_G[0]][1]), 2));*/
-		
-	
+
 		A_k = sqrt(pow((pos[rt_A[0]][0] - pos[r_gene[gg][A]][0]), 2) + pow((pos[rt_A[0]][1] - pos[r_gene[gg][A]][1]), 2));
 		B_k = sqrt(pow((pos[rt_B[0]][0] - pos[r_gene[gg][A]][0]), 2) + pow((pos[rt_B[0]][1] - pos[r_gene[gg][A]][1]), 2));
 		C_k = sqrt(pow((pos[rt_C[0]][0] - pos[r_gene[gg][A]][0]), 2) + pow((pos[rt_C[0]][1] - pos[r_gene[gg][A]][1]), 2));
-		/*D_k = sqrt(pow((pos[rt_D[0]][0] - pos[r_gene[gg][A]][0]), 2) + pow((pos[rt_D[0]][1] - pos[r_gene[gg][A]][1]), 2));
+		D_k = sqrt(pow((pos[rt_D[0]][0] - pos[r_gene[gg][A]][0]), 2) + pow((pos[rt_D[0]][1] - pos[r_gene[gg][A]][1]), 2));
 		E_k = sqrt(pow((pos[rt_E[0]][0] - pos[r_gene[gg][A]][0]), 2) + pow((pos[rt_E[0]][1] - pos[r_gene[gg][A]][1]), 2));
-		F_k = sqrt(pow((pos[rt_F[0]][0] - pos[r_gene[gg][A]][0]), 2) + pow((pos[rt_F[0]][1] - pos[r_gene[gg][A]][1]), 2));
-		G_k = sqrt(pow((pos[rt_G[0]][0] - pos[r_gene[gg][A]][0]), 2) + pow((pos[rt_G[0]][1] - pos[r_gene[gg][A]][1]), 2));*/
-
+		
 		gr_k = sqrt(pow((gr_x - pos[r_gene[gg][A]][0]), 2) + pow((gr_y - pos[r_gene[gg][A]][1]), 2));
-
 
 		ev_A = A_k + gr_k - gr_A;
 		ev_B = B_k + gr_k - gr_B;
 		ev_C = C_k + gr_k - gr_C;
-		/*ev_D = D_k + gr_k - gr_D;
+		ev_D = D_k + gr_k - gr_D;
 		ev_E = E_k + gr_k - gr_E;
-		ev_F = F_k + gr_k - gr_F;
-		ev_G = G_k + gr_k - gr_G;*/
 
 		ev_sort[0] = ev_A;
 		ev_sort[1] = ev_B;
 		ev_sort[2] = ev_C;
-		/*ev_sort[3] = ev_D;
+		ev_sort[3] = ev_D;
 		ev_sort[4] = ev_E;
-		ev_sort[5] = ev_F;
-		ev_sort[6] = ev_G; */
-
+		
 		evABC_sort(ev_sort);
 
 		//挿入法の結果、一番距離が短いものがどれか
@@ -395,158 +342,117 @@ void random_route(int rt[N], int seed) {
 			rt_B[countB] = r_gene[gg][A];
 
 		}
-		else if(ev_C==ev_sort[0]){
+		else if (ev_C == ev_sort[0]) {
 			countC++;
 			rt_C[countC] = r_gene[gg][A];
 
 		}
-		/*else if (ev_D == ev_sort[0]) {
+		else if (ev_D == ev_sort[0]) {
 			countD++;
 			rt_D[countD] = r_gene[gg][A];
-
 		}
 		else if (ev_E == ev_sort[0]) {
 			countE++;
 			rt_E[countE] = r_gene[gg][A];
-
 		}
-		else if (ev_F == ev_sort[0]) {
-			countF++;
-			rt_F[countF] = r_gene[gg][A];
-
-		}
-		else if (ev_G == ev_sort[0]) {
-			countG++;
-			rt_G[countG] = r_gene[gg][A];
-
-		}*/
 
 		//残りの都市がどのルートに入ればいいか調べる
 		//今は、ルートにそれぞれ１つは都市が入っている＆１つのルートだけ２つ目の都市が入っている
-		for (int i = A+1; i < N; i++) {
+		for (int i = A + 1; i < N; i++) {
 			gr_k = sqrt(pow((gr_x - pos[r_gene[gg][i]][0]), 2) + pow((gr_y - pos[r_gene[gg][i]][1]), 2));
 
 			//ルートAだけを考える
-			double min_A = ev_start2k_k2end(rt_A, 0,r_gene[gg][i]) + gr_k;
+			double min_A = ev_start2k_k2end(rt_A, 0, r_gene[gg][i]) + gr_k;
 			int min_rt_A = rt_A[0];//デポの間（デポと最初の都市の間）に挿入
 			bool insert_gr_startA = true;
 			each_route_min(rt_A, i, gr_k, countA, min_A, min_rt_A, insert_gr_startA, insert_end_rtA);
 
 
 			//ルートBだけ考える
-			double min_B = ev_start2k_k2end(rt_B,0, r_gene[gg][i]) + gr_k;
+			double min_B = ev_start2k_k2end(rt_B, 0, r_gene[gg][i]) + gr_k;
 			int min_rt_B = rt_B[0];//デポの間（デポと最初の都市の間）に挿入
 			bool insert_gr_startB = true;
 			each_route_min(rt_B, i, gr_k, countB, min_B, min_rt_B, insert_gr_startB, insert_end_rtB);
 
 			//ルートCだけ考える
-			double min_C = ev_start2k_k2end(rt_C,0, r_gene[gg][i]) + gr_k;
+			double min_C = ev_start2k_k2end(rt_C, 0, r_gene[gg][i]) + gr_k;
 			int min_rt_C = rt_C[0];//デポの間（デポと最初の都市の間）に挿入
 			bool insert_gr_startC = true;
-			each_route_min(rt_C,i,gr_k,countC,min_C, min_rt_C,insert_gr_startC,insert_end_rtC);		
-			
+			each_route_min(rt_C, i, gr_k, countC, min_C, min_rt_C, insert_gr_startC, insert_end_rtC);
+
 			//ルートDだけ考える
-			/*double min_D = ev_start2k_k2end(rt_D, 0, r_gene[gg][i]) + gr_k;
+			double min_D = ev_start2k_k2end(rt_D, 0, r_gene[gg][i]) + gr_k;
 			int min_rt_D = rt_D[0];//デポの間（デポと最初の都市の間）に挿入
 			bool insert_gr_startD = true;
 			each_route_min(rt_D, i, gr_k, countD, min_D, min_rt_D, insert_gr_startD, insert_end_rtD);
-
 			//ルートEだけ考える
 			double min_E = ev_start2k_k2end(rt_E, 0, r_gene[gg][i]) + gr_k;
 			int min_rt_E = rt_E[0];//デポの間（デポと最初の都市の間）に挿入
 			bool insert_gr_startE = true;
 			each_route_min(rt_E, i, gr_k, countE, min_E, min_rt_E, insert_gr_startE, insert_end_rtE);
-
-			//ルートFだけ考える
-			double min_F = ev_start2k_k2end(rt_F, 0, r_gene[gg][i]) + gr_k;
-			int min_rt_F = rt_F[0];//デポの間（デポと最初の都市の間）に挿入
-			bool insert_gr_startF = true;
-			each_route_min(rt_F, i, gr_k, countF, min_F, min_rt_F, insert_gr_startF, insert_end_rtF);
-
-			//ルートGだけ考える
-			double min_G = ev_start2k_k2end(rt_G, 0, r_gene[gg][i]) + gr_k;
-			int min_rt_G = rt_G[0];//デポの間（デポと最初の都市の間）に挿入
-			bool insert_gr_startG = true;
-			each_route_min(rt_G, i, gr_k, countG, min_G, min_rt_G, insert_gr_startG, insert_end_rtG);*/
-
+			
 
 			//A・B・Cの評価を並べる
 			ev_sort[0] = min_A;
 			ev_sort[1] = min_B;
 			ev_sort[2] = min_C;
-			/*ev_sort[3] = min_D;
+			ev_sort[3] = min_D;
 			ev_sort[4] = min_E;
-			ev_sort[5] = min_F;
-			ev_sort[6] = min_G;*/
-
+			
 			evABC_sort(ev_sort);
 
 
 			if (min_A == ev_sort[0]) {
 
-				insert_position(rt_A,countA,insert_gr_startA, insert_end_rtA, r_gene[gg][i], min_rt_A);
+				insert_position(rt_A, countA, insert_gr_startA, insert_end_rtA, r_gene[gg][i], min_rt_A);
 
 			}
 			else if (min_B == ev_sort[0]) {
 				insert_position(rt_B, countB, insert_gr_startB, insert_end_rtB, r_gene[gg][i], min_rt_B);
-				
-			}
-			else if(min_C == ev_sort[0]) {
-				insert_position(rt_C, countC, insert_gr_startC, insert_end_rtC, r_gene[gg][i], min_rt_C);
-				
-			}
-			/*else if (min_D == ev_sort[0]) {
-				insert_position(rt_D, countD, insert_gr_startD, insert_end_rtD, r_gene[gg][i], min_rt_D);
 
+			}
+			else if (min_C == ev_sort[0]) {
+				insert_position(rt_C, countC, insert_gr_startC, insert_end_rtC, r_gene[gg][i], min_rt_C);
+
+			}
+			else if (min_D == ev_sort[0]) {
+				insert_position(rt_D, countD, insert_gr_startD, insert_end_rtD, r_gene[gg][i], min_rt_D);
 			}
 			else if (min_E == ev_sort[0]) {
 				insert_position(rt_E, countE, insert_gr_startE, insert_end_rtE, r_gene[gg][i], min_rt_E);
-
 			}
-			else if (min_F == ev_sort[0]) {
-				insert_position(rt_F, countF, insert_gr_startF, insert_end_rtF, r_gene[gg][i], min_rt_F);
-
-			}
-			else if (min_G == ev_sort[0]) {
-				insert_position(rt_G, countG, insert_gr_startG, insert_end_rtG, r_gene[gg][i], min_rt_G);
-
-			}*/
-
+			
 			insert_end_rtA = false;
 			insert_end_rtB = false;
 			insert_end_rtC = false;
 			insert_end_rtD = false;
 			insert_end_rtE = false;
-			insert_end_rtF = false;
-			insert_end_rtG = false;
 			insert_gr_startA = false;
 			insert_gr_startB = false;
 			insert_gr_startC = false;
-			/**insert_gr_startD = false;
-			insert_gr_startE = false;*/
-			/*insert_gr_startF = false;
-			insert_gr_startG = false;*/
+			insert_gr_startD = false;
+			insert_gr_startE = false;
 		}
 
-		
-		
+
+
 
 		if (countA > 4) {
 			//cout << "A突然変異" << endl;
 			mutation(rt_A, countA);//突然変異
 		}
-		
-		if (countB > 4){
+
+		if (countB > 4) {
 			//cout << "B突然変異" << endl;
 			mutation(rt_B, countB);//突然変異
 		}
-		
+
 		if (countC > 4) {
 			//cout << "C突然変異" << endl;
 			mutation(rt_C, countC);//突然変異
 		}
 
-		/*if (countD > 4) {
+		if (countD > 4) {
 			//cout << "C突然変異" << endl;
 			mutation(rt_D, countD);//突然変異
 		}
@@ -554,48 +460,33 @@ void random_route(int rt[N], int seed) {
 			//cout << "C突然変異" << endl;
 			mutation(rt_E, countE);//突然変異
 		}
-		if (countF > 1) {
-			//cout << "C突然変異" << endl;
-			mutation(rt_F, countF);//突然変異
-		}
-		if (countG > 1) {
-			//cout << "C突然変異" << endl;
-			mutation(rt_G, countG);//突然変異
-		}*/
 		
 		//2つの経路ごとの2opt近傍
-		if (countA > 1 && countB > 1 && countC > 1 ){
-			//&& countD > 1 && countE && countF > 1 && countG > 1) {
+		if (countA > 1 && countB > 1 && countC > 1&& countD > 1 && countE>1) {
 			two_route_search(rt_A, rt_B, rt_C, rt_D, rt_E);
-				//rt_F, rt_G);
+			
 		}
 
 
 		//今のコスト
-		
+
 		dist_A = dist_ABC(rt_A, countA);
 		dist_B = dist_ABC(rt_B, countB);
 		dist_C = dist_ABC(rt_C, countC);
 		dist_D = dist_ABC(rt_D, countD);
 		dist_E = dist_ABC(rt_E, countE);
-		//dist_F = dist_ABC(rt_F, countF);
-		//dist_G = dist_ABC(rt_G, countG);
-
+		
 		if (A == 3) {
 			now_cost = cost3(dist_A, dist_B, dist_C);
 		}
 		else if (A == 5) {
-			now_cost = cost5(dist_A, dist_B, dist_C,dist_D,dist_E);
+			now_cost = cost5(dist_A, dist_B, dist_C, dist_D, dist_E);
 		}
-		else {
-			now_cost = cost7(dist_A, dist_B, dist_C, dist_D, dist_E,dist_F,dist_G);
-		}
-
+		
 		if (now_cost < min_cost) {
-			cout << "---------------------更新" << endl;
+			//cout << "---------------------更新" << endl;
 			min_cost = now_cost;
-			no_update = 0;	//更新されたから0に戻す
-			
+
 			for (int p = 0; p < countA + 1; p++) {
 				best_A[p] = rt_A[p];
 			}
@@ -605,31 +496,22 @@ void random_route(int rt[N], int seed) {
 			for (int p = 0; p < countC + 1; p++) {
 				best_C[p] = rt_C[p];
 			}
-			/*for (int p = 0; p < countD + 1; p++) {
+			for (int p = 0; p < countD + 1; p++) {
 				best_D[p] = rt_D[p];
 			}
 			for (int p = 0; p < countE + 1; p++) {
 				best_E[p] = rt_E[p];
 			}
-			for (int p = 0; p < countF + 1; p++) {
-				best_F[p] = rt_F[p];
-			}
-			for (int p = 0; p < countG + 1; p++) {
-				best_G[p] = rt_G[p];
-			}*/
-
+			
 			best_countA = countA;
 			best_countB = countB;
 			best_countC = countC;
-			/*best_countD = countD;
+			best_countD = countD;
 			best_countE = countE;
-			best_countF = countF;
-			best_countG = countG;*/
-
+			
 		}
 		cout << gg << endl;
 		gg++;
-		no_update++;
 		if (gg == G) {
 			ofstream writing_file;
 			string filename = "result.csv";
@@ -640,16 +522,35 @@ void random_route(int rt[N], int seed) {
 		}
 
 	}
-			
+
 
 	glutPostRedisplay();
-	
+
 }
 
+//初期解生成でランダムに配列を求める関数
+void randam_array(int* rt) {
+	int v[N], cid = 0, max = 0;
 
+	for (int i = 0; i < N; i++) {
+		v[i] = rand();
+	}
+
+	for (int i = 0; i < N; i++) {
+		max = -1;
+		for (int j = 0; j < N; j++) {
+			if (v[j] > max) {
+				max = v[j];
+				cid = j;
+			}
+		}
+		rt[i] = cid;
+		v[cid] = -1;
+	}
+}
 
 void draw_solution(int rt[N], double position[N][2]) {
-	
+
 	int i;
 	char string[100];
 
@@ -667,7 +568,7 @@ void draw_solution(int rt[N], double position[N][2]) {
 	glColor3d(1.0, 1.0, 0.0); //yellow
 	glBegin(GL_LINE_LOOP);
 	//glVertex2d(gr_x, gr_y)
-	
+
 	for (int i = 0; i < best_countA + 1; i++) {
 		glVertex2dv(position[best_A[i]]);
 	}
@@ -695,7 +596,7 @@ void draw_solution(int rt[N], double position[N][2]) {
 	glEnd();
 
 	//-----rt_D-----
-	/*glColor3d(1.0, 0.0, 1.0); //white
+	glColor3d(1.0, 0.0, 1.0); //white
 	glBegin(GL_LINE_LOOP);
 	//glVertex2d(gr_x, gr_y);
 	for (int i = 0; i < best_countD + 1; i++) {
@@ -703,7 +604,7 @@ void draw_solution(int rt[N], double position[N][2]) {
 	}
 	glVertex2d(gr_x, gr_y);
 	glEnd();
-	
+
 	//-----rt_E-----
 	glColor3d(0.0, 0.0, 1.0); //white
 	glBegin(GL_LINE_LOOP);
@@ -713,27 +614,7 @@ void draw_solution(int rt[N], double position[N][2]) {
 	}
 	glVertex2d(gr_x, gr_y);
 	glEnd();
-
-	//-----rt_F-----
-	glColor3d(0.0, 1.0, 1.0); //white
-	glBegin(GL_LINE_LOOP);
-	//glVertex2d(gr_x, gr_y);
-	for (int i = 0; i < best_countF + 1; i++) {
-		glVertex2dv(position[best_F[i]]);
-	}
-	glVertex2d(gr_x, gr_y);
-	glEnd();
-
-	//-----rt_G-----
-	glColor3d(0.0, 1.0, 0.0); //white
-	glBegin(GL_LINE_LOOP);
-	//glVertex2d(gr_x, gr_y);
-	for (int i = 0; i < best_countG + 1; i++) {
-		glVertex2dv(position[best_G[i]]);
-	}
-	glVertex2d(gr_x, gr_y);
-	glEnd();*/
-
+	
 	glColor3d(0.0, 0.0, 1.0); //blue
 	glPointSize(3);
 	glBegin(GL_POINTS);
@@ -797,14 +678,6 @@ void drawBitmapString(void* font, char* string)
 	glPopAttrib();
 }
 
-uint64_t get_rand_range(uint64_t min_val, uint64_t max_val) {
-	static std::mt19937_64 mt64(0);
-
-	std::uniform_int_distribution<uint64_t> get_rand_uni_int(min_val, max_val);
-
-	return get_rand_uni_int(mt64);
-}
-
 void gravity() {
 	double x_all = 0, y_all = 0;
 
@@ -839,7 +712,7 @@ void evABC_sort(double ev_sort[]) {
 	}
 }
 
-double ev_start2k_k2end(int rt_ABC[], int start_or_end,int rt) {
+double ev_start2k_k2end(int rt_ABC[], int start_or_end, int rt) {
 	double gr_ABC, ABC_k;
 
 	gr_ABC = sqrt(pow((gr_x - pos[rt_ABC[start_or_end]][0]), 2) + pow((gr_y - pos[rt_ABC[start_or_end]][1]), 2));
@@ -868,13 +741,13 @@ void render_string(float x, float y, const char* str, double cost) { //文字表
 	}
 }
 
-double cost3(double dist_A,double dist_B,double dist_C) {
+double cost3(double dist_A, double dist_B, double dist_C) {
 	double sum = 0, ave = 0;
 
 	sum = dist_A + dist_B + dist_C;
 	ave = sum / A;
 
-	return sum + aa*(fabs(ave - dist_A) + fabs(ave - dist_B) + fabs(ave - dist_C))/A;
+	return sum + aa * (fabs(ave - dist_A) + fabs(ave - dist_B) + fabs(ave - dist_C)) / A;
 
 }
 
@@ -884,17 +757,17 @@ double cost5(double dist_A, double dist_B, double dist_C, double dist_D, double 
 	sum = dist_A + dist_B + dist_C + dist_D + dist_E;
 	ave = sum / A;
 
-	return sum + aa * (fabs(ave - dist_A) + fabs(ave - dist_B) + fabs(ave - dist_C)+ fabs(ave - dist_D)+ fabs(ave - dist_E)) / A;
+	return sum + aa * (fabs(ave - dist_A) + fabs(ave - dist_B) + fabs(ave - dist_C) + fabs(ave - dist_D) + fabs(ave - dist_E)) / A;
 
 }
 
 double cost7(double dist_A, double dist_B, double dist_C, double dist_D, double dist_E, double dist_F, double dist_G) {
-	double sum = 0, ave = 0,dif=0;
+	double sum = 0, ave = 0, dif = 0;
 
 	sum = dist_A + dist_B + dist_C + dist_D + dist_E + dist_F + dist_G;
 	ave = sum / A;
 	dif = fabs(ave - dist_A) + fabs(ave - dist_B) + fabs(ave - dist_C) + fabs(ave - dist_D) + fabs(ave - dist_E) + fabs(ave - dist_F) + fabs(ave - dist_G);
-	
+
 	return sum + aa * dif / A;
 
 }
@@ -912,35 +785,35 @@ double dist_ABC(int route[], int count) {
 }
 
 //2つのルートどうしでの距離
-double dist_two_route(int route[], int num,int split_1,int split_2) {
+double dist_two_route(int route[], int num, int split_1, int split_2) {
 	double distance = 0;
 
 	//デポとの距離を求める
 	//distance += sqrt(pow((gr_x - pos[route[split_1-1]][0]), 2) + pow((gr_y - pos[route[split_1-1]][1]), 2));
 	//distance += sqrt(pow((gr_x - pos[route[split_2-1]][0]), 2) + pow((gr_y - pos[route[split_2 - 1]][1]), 2));
-	for (int i = 0; i < num-1; i++) {
+	for (int i = 0; i < num - 1; i++) {
 		distance += sqrt(pow((pos[route[i]][0] - pos[route[i + 1]][0]), 2) + pow((pos[route[i]][1] - pos[route[i + 1]][1]), 2));
 	}
-	
+
 	return distance;
 }
 
-double dist_2opt(int rt_temp[],int start,int end){
+double dist_2opt(int rt_temp[], int start, int end) {
 	double distance = 0;
 	//逆順する最初の都市の1つ前の都市との距離
 	distance += sqrt(pow((pos[route[start - 1]][0] - pos[route[start]][0]), 2) + pow((pos[route[start - 1]][1] - pos[route[start]][1]), 2));
 	//逆順する最後の都市の1つ後の都市との距離
 	distance += sqrt(pow((pos[route[end - 1]][0] - pos[route[end]][0]), 2) + pow((pos[route[end - 1]][1] - pos[route[end]][1]), 2));
 
-	for (int i = 0; i < end-start; i++) {
+	for (int i = 0; i < end - start; i++) {
 		distance += sqrt(pow((pos[rt_temp[i]][0] - pos[rt_temp[i + 1]][0]), 2) + pow((pos[rt_temp[i]][1] - pos[rt_temp[i + 1]][1]), 2));
 	}
 
 	return distance;
 }
 
-void mutation(int *route,int count) {
-	double dist_ac, dist_cb,dist_ab,now_dist;// , dist_pn, dist_ab, dist_pc, dist_cn, now_dist;
+void mutation(int* route, int count) {
+	double dist_ac, dist_cb, dist_ab, now_dist;// , dist_pn, dist_ab, dist_pc, dist_cn, now_dist;
 	double min_mutation = 100;//変化量が最小なものを保持
 	double now_mutation = 0;//今の変化量
 	int insert_city = 0;//挿入する都市
@@ -965,7 +838,7 @@ void mutation(int *route,int count) {
 					pre_city = k;
 				}
 			}
-			for (int c = k + 2; c < count+1; c++) {
+			for (int c = k + 2; c < count + 1; c++) {
 				dist_ab = sqrt(pow((pos[route[k]][0] - pos[route[k + 1]][0]), 2) + pow((pos[route[k]][1] - pos[route[k + 1]][1]), 2));
 				dist_ac = sqrt(pow((pos[route[k]][0] - pos[route[c]][0]), 2) + pow((pos[route[k]][1] - pos[route[c]][1]), 2));
 				dist_cb = sqrt(pow((pos[route[c]][0] - pos[route[k + 1]][0]), 2) + pow((pos[route[c]][1] - pos[route[k + 1]][1]), 2));
@@ -980,10 +853,10 @@ void mutation(int *route,int count) {
 			}
 
 		}
-		
+
 		if (insert_city > pre_city) {
 
-			for (int s = insert_city; s > pre_city+1; s--) {
+			for (int s = insert_city; s > pre_city + 1; s--) {
 				swap(route[s], route[s - 1]);//前の配列と交換
 			}
 		}
@@ -1015,7 +888,7 @@ void mutation(int *route,int count) {
 			is_improved = false;
 		}
 	}
-	
+
 	//2-opt近傍
 	int* now_temp = new int[N];
 	int min_x = 0, min_c = 0;
@@ -1026,7 +899,7 @@ void mutation(int *route,int count) {
 	is_improved = true;
 	min_dist = dist_ABC(route, count);
 	double pre_dist = dist_ABC(route, count);//局所探索法（2-opt近傍）の前の距離
-	
+
 	while (is_improved_2opt) {
 		for (int x = 0; x < count; x++) {
 			for (int c = x + 1; c < count + 1; c++) {
@@ -1048,7 +921,7 @@ void mutation(int *route,int count) {
 				}
 			}
 		}
-		
+
 		if (min_dist < pre_dist) {
 			pre_dist = min_dist;
 			//経路を更新
@@ -1065,10 +938,9 @@ void mutation(int *route,int count) {
 		}
 
 	}
-	
+
 	/*double pre_2opt = 0;	//2optする前の距離
 	double now_2opt = 0;	//2optした後の距離
-
 	for (int x = 2; x < count-2; x++) {
 		for (int c = x + 1; c < count - 1; c++) {
 			//cout << "x=" << x << " c=" << c << endl;
@@ -1078,7 +950,6 @@ void mutation(int *route,int count) {
 			}
 			pre_2opt=dist_2opt(now_temp,x,c);
 			//cout << pre_2opt << endl;
-
 			//逆順
 			for (int k = 0; k <= c-x; k++) {
 				now_temp[k] = route[c-k];
@@ -1086,30 +957,28 @@ void mutation(int *route,int count) {
 			}
 			now_2opt=dist_2opt(now_temp,x,c);
 			//cout << "now=" << now_2opt << endl;
-
 			//元に戻す
 			for (int k = 0; k <= c-x; k++) {
 				now_temp[k] = route[x+k];
 			}
-
 			if (now_2opt < pre_2opt) {
 				for (int p = x; p <= c; p++) {
 					route[p] = now_temp[p - x];
 				}
 				//cout << "2opt" << endl;
 			}
-			
+
 		}
 	}
 	*/
 
 	delete[] now_temp;
-	
+
 }
 
 
 
-void swap(int &x, int &y) {
+void swap(int& x, int& y) {
 	int temp;    // 値を一時保存する変数
 
 	temp = x;
@@ -1123,8 +992,8 @@ int GetRandom(int min, int max) {
 
 }
 
-double insert_but_gr(int route[],int insert_city,int j) {
-	double X_Y=0, X_k=0, Y_k=0;
+double insert_but_gr(int route[], int insert_city, int j) {
+	double X_Y = 0, X_k = 0, Y_k = 0;
 
 	X_Y = sqrt(pow((pos[route[j]][0] - pos[route[j + 1]][0]), 2) + pow((pos[route[j]][1] - pos[route[j + 1]][1]), 2));
 	X_k = sqrt(pow((pos[route[j]][0] - pos[r_gene[gg][insert_city]][0]), 2) + pow((pos[route[j]][1] - pos[r_gene[gg][insert_city]][1]), 2));
@@ -1133,10 +1002,10 @@ double insert_but_gr(int route[],int insert_city,int j) {
 	return X_k + Y_k - X_Y;
 }
 
-void each_route_min(int route[],int insert_city,double gr_k,int count,double& min, int &min_rt,bool &insert_gr_start,bool &insert_end_rt) {
+void each_route_min(int route[], int insert_city, double gr_k, int count, double& min, int& min_rt, bool& insert_gr_start, bool& insert_end_rt) {
 
 	double ev_XY, ev_end;
-	
+
 
 	if (count != 0) {
 		for (int j = 0; j < count; j++) {
@@ -1167,7 +1036,7 @@ void each_route_min(int route[],int insert_city,double gr_k,int count,double& mi
 
 }
 
-void insert_position(int route[],int &count,bool insert_gr_start,bool insert_end_rt,int insert_city,int min_rt) {
+void insert_position(int route[], int& count, bool insert_gr_start, bool insert_end_rt, int insert_city, int min_rt) {
 	//デポと最初の都市の間に挿入
 	if (insert_gr_start) {
 		count++;
@@ -1188,17 +1057,17 @@ void insert_position(int route[],int &count,bool insert_gr_start,bool insert_end
 }
 
 //2-optを行う2つのルートの組合せ
-void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E){
+void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E) {
 	//int* rt_F, int* rt_G ) {
-	
+
 	if (num_car == 3) {
 		//att48[3]のときに実行
-		
+
 		search_in_each_route(rt_A, rt_B, countA, countB);
-		
+
 		search_in_each_route(rt_B, rt_C, countB, countC);
 		search_in_each_route(rt_C, rt_A, countC, countA);
-		
+
 	}
 	else if (num_car == 5) {
 		//pcb442[5]のときに実行
@@ -1218,7 +1087,7 @@ void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E){
 		search_in_each_route(rt_F, rt_G, countF, countG);
 		search_in_each_route(rt_G, rt_A, countG, countA);
 	}*/
-	
+
 }
 
 void search_in_each_route(int* rt_1, int* rt_2, int count_1, int count_2) {
@@ -1226,7 +1095,7 @@ void search_in_each_route(int* rt_1, int* rt_2, int count_1, int count_2) {
 	int split_2 = count_2 + 1;	//ルートを分けるとき用
 	int num = split_1 + split_2;	//繋げたときの配列の数
 	//int newtemp[N] = { 0 };
-	int* newtemp=new int[num];
+	int* newtemp = new int[num];
 	int start_2opt_position = 0;	//2optをする範囲のスタート
 	int end_2opt_position = 0;		//2optをする範囲のエンド
 
