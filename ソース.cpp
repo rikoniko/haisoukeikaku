@@ -72,6 +72,7 @@ int best_A[N], best_B[N], best_C[N], best_D[N], best_E[N], best_F[N], best_G[N];
 bool rt_zero = true;
 double min_cost = 100;
 int r_gene[G + 1][N];
+int cp_gene[G + 1][N];	//局所最適解から脱出用
 int gg = 0;		//遺伝子の数を数えるよう
 
 void idle() {
@@ -138,7 +139,7 @@ void random_route(int rt[N], int seed) {
 	bool not_taboo = true;	//タブーリストに含まれているかどうか
 	const int same_num = N-1;
 	//int kakuritu = 0;
-
+	int ct_gene = 0;	//コピーしたcp_geneのカウントのため
 	std::random_device seed_gen;
 	std::mt19937 engine(seed_gen());
 
@@ -254,6 +255,7 @@ void random_route(int rt[N], int seed) {
 				//タブーリストに含まれていないものがr_geneとなる
 				for (int k = 0; k < N; k++) {
 					r_gene[g][k] = rt[k];
+					//cp_gene[g][k] = rt[k];
 					//cout << "r_gene[" << g << "][" << k << "]:" << r_gene[g][k] << endl << endl;
 				}
 				
@@ -283,7 +285,7 @@ void random_route(int rt[N], int seed) {
 	countC = 0;
 	countD = 0;
 	countE = 0;
-	
+	//int kinbo = 0;
 
 	if (gg < G) {
 
@@ -438,37 +440,22 @@ void random_route(int rt[N], int seed) {
 			insert_gr_startE = false;
 			*/
 		}
-
-
-		//2つの経路ごとの2opt近傍
-		if (countA > 1 && countB > 1 && countC > 1) {
-			//&& countD > 1 && countE && countF > 1 && countG > 1) {
-			two_route_search(rt_A, rt_B, rt_C, rt_D, rt_E);
+		
+		for (int c = 0; c < countA+1; c++) {
+			cp_gene[gg][c] = rt_A[c];
+			ct_gene++;
 		}
-
-		//1つの経路ごとの1.5opt近傍
-		if (countA > 4) {
-			//cout << "A突然変異" << endl;
-			two_opt(rt_A, countA);//突然変異
+		for (int c = 0; c < countB+1; c++) {
+			cp_gene[gg][c + ct_gene+1] = rt_B[c];
 		}
-
-		if (countB > 4) {
-			//cout << "B突然変異" << endl;
-			two_opt(rt_B, countB);//突然変異
+		for (int c = 0; c < countC+1; c++) {
+			cp_gene[gg][c + ct_gene+1] = rt_C[c];
 		}
-
-		if (countC > 4) {
-			//cout << "C突然変異" << endl;
-			two_opt(rt_C, countC);//突然変異
+		/*for (int c = 0; c < countD+1; c++) {
+			cp_gene[gg][c + ct_gene+1] = rt_D[c];
 		}
-
-		/*if (countD > 4) {
-			//cout << "C突然変異" << endl;
-			two_opt(rt_D, countD);//突然変異
-		}
-		if (countE > 4) {
-			//cout << "C突然変異" << endl;
-			two_opt(rt_E, countE);//突然変異
+		for (int c = 0; c < countE+1; c++) {
+			cp_gene[gg][c + ct_gene+1] = rt_E[c];
 		}
 		*/
 
@@ -497,7 +484,42 @@ void random_route(int rt[N], int seed) {
 			insert_opt(rt_E, countE);//突然変異
 		}
 		*/
+		
+		//1つの経路ごとの2opt近傍
+		
+		if (countA > 4) {
+			//cout << "A突然変異" << endl;
+			two_opt(rt_A, countA);//突然変異
+		}
 
+		if (countB > 4) {
+			//cout << "B突然変異" << endl;
+			two_opt(rt_B, countB);//突然変異
+		}
+
+		if (countC > 4) {
+			//cout << "C突然変異" << endl;
+			two_opt(rt_C, countC);//突然変異
+		}
+
+		/*if (countD > 4) {
+			//cout << "C突然変異" << endl;
+			two_opt(rt_D, countD);//突然変異
+		}
+		if (countE > 4) {
+			//cout << "C突然変異" << endl;
+			two_opt(rt_E, countE);//突然変異
+		}
+		*/
+	
+
+		//2つの経路ごとの2opt近傍
+		
+		if (countA > 1 && countB > 1 && countC > 1) {
+			//&& countD > 1 && countE && countF > 1 && countG > 1) {
+			two_route_search(rt_A, rt_B, rt_C, rt_D, rt_E);
+		}
+				
 
 		//今のコスト
 
@@ -901,7 +923,7 @@ void insert_opt(int* route, int count) {
 
 		if (now_dist < min_dist) {
 			min_dist = now_dist;
-			cout << "1.5-opt近傍実行" << endl;
+			//cout << "1.5-opt近傍実行" << endl;
 			is_improved = true;
 		}
 		else {
@@ -967,7 +989,7 @@ void two_opt(int* route, int count) {
 		if (min_dist < pre_dist) {
 			pre_dist = min_dist;
 			//経路を更新
-			cout << "2-opt実行" << endl;
+			//cout << "2-opt実行" << endl;
 			for (int k = 0; k <= min_c - min_x; k++) {
 				now_temp[min_x + k] = route[min_c - k];
 			}
@@ -1253,3 +1275,4 @@ void search_in_each_route(int* rt_1, int* rt_2, int count_1, int count_2) {
 	}
 	delete[] newtemp;
 }
+
