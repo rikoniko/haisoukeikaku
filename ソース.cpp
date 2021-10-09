@@ -43,7 +43,7 @@ void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E);
 //int* rt_F, int* rt_G);
 double dist_two_route(int route[], int count, int split_1, int split_2);
 double dist_2opt(int rt_temp[], int start, int end);
-int get_rand(int max_num);
+int get_rand(int min_num,int max_num);
 
 int route[N];		//解（訪問順序）
 double pos[N][2];	//町の座標
@@ -285,7 +285,9 @@ void random_route(int rt[N], int seed) {
 	countC = 0;
 	countD = 0;
 	countE = 0;
-	//int kinbo = 0;
+	int mutation_ct = 0;;
+	int swap1 = 0, swap2 = 0;
+	int element = 0;	//コピーした配列の要素数を数えるため
 
 	if (gg < G) {
 
@@ -441,24 +443,33 @@ void random_route(int rt[N], int seed) {
 			*/
 		}
 		
+		//局所最適解からの脱出のために初期解をコピーする
 		for (int c = 0; c < countA+1; c++) {
 			cp_gene[gg][c] = rt_A[c];
 			ct_gene++;
 		}
+		element = ct_gene;
 		for (int c = 0; c < countB+1; c++) {
-			cp_gene[gg][c + ct_gene+1] = rt_B[c];
+			cp_gene[gg][c + element] = rt_B[c];
+			ct_gene++;
 		}
+		element = ct_gene;
 		for (int c = 0; c < countC+1; c++) {
-			cp_gene[gg][c + ct_gene+1] = rt_C[c];
+			cp_gene[gg][c +element] = rt_C[c];
+			ct_gene++;
 		}
+		element = ct_gene;
 		/*for (int c = 0; c < countD+1; c++) {
-			cp_gene[gg][c + ct_gene+1] = rt_D[c];
+			cp_gene[gg][c + element] = rt_D[c];
+			ct_gene++;
 		}
+		element = ct_gene;
 		for (int c = 0; c < countE+1; c++) {
-			cp_gene[gg][c + ct_gene+1] = rt_E[c];
+			cp_gene[gg][c + element] = rt_E[c];
+			ct_gene++;
 		}
 		*/
-
+		
 		//1つの経路ごとの1.5opt近傍
 		if (countA > 1) {
 			//cout << "A突然変異" << endl;
@@ -522,7 +533,6 @@ void random_route(int rt[N], int seed) {
 				
 
 		//今のコスト
-
 		dist_A = dist_ABC(rt_A, countA);
 		dist_B = dist_ABC(rt_B, countB);
 		dist_C = dist_ABC(rt_C, countC);
@@ -537,7 +547,7 @@ void random_route(int rt[N], int seed) {
 		}
 
 		if (now_cost < min_cost) {
-			//cout << "---------------------更新" << endl;
+			cout << "---------------------更新" << endl;
 			min_cost = now_cost;
 
 			for (int p = 0; p < countA + 1; p++) {
@@ -565,6 +575,156 @@ void random_route(int rt[N], int seed) {
 			*/
 
 		}
+		
+		//局所最適解の脱出-------------------------------------------------------------ここから
+		
+		//step1 突然変異
+		mutation_ct = get_rand(1, 500);	//突然変異が実行される確率
+		//cout << "突然変異実行回数:" << mutation_ct << endl;
+		for (int m = 0; m < mutation_ct; m++) {
+			swap1 = get_rand(0, N - 1);
+			swap2 = get_rand(0, N - 1);
+			//cout << "swap1:" << swap1 << "  swap2:" << swap2 << endl;
+			swap(cp_gene[gg][swap1], cp_gene[gg][swap2]);
+		}
+		ct_gene = 0;
+
+		//step2　コピー初期解を作成
+		for (int p = 0; p < countA + 1; p++) {
+			rt_A[p] = cp_gene[gg][p];
+			ct_gene++;
+		}
+		element = ct_gene;
+		for (int p = 0; p < countB + 1; p++) {
+			rt_B[p] = cp_gene[gg][p+element];
+			ct_gene++;
+		}
+		element = ct_gene;
+		for (int p = 0; p < countC + 1; p++) {
+			rt_C[p] = cp_gene[gg][p + element];
+			ct_gene++;
+		}
+		element = ct_gene;
+		/*for (int p = 0; p < countD + 1; p++) {
+			rt_D[p] = cp_gene[gg][p + element];
+			ct_gene++;
+		}
+		element = ct_gene;
+		for (int p = 0; p < countE + 1; p++) {
+			rt_E[p] = cp_gene[gg][p + element];
+			ct_gene++;
+		}
+		*/
+		element = 0;
+
+		//step3
+		//1つの経路ごとの1.5opt近傍
+		if (countA > 1) {
+			//cout << "A突然変異" << endl;
+			insert_opt(rt_A, countA);//突然変異
+		}
+
+		if (countB > 1) {
+			//cout << "B突然変異" << endl;
+			insert_opt(rt_B, countB);//突然変異
+		}
+
+		if (countC > 1) {
+			//cout << "C突然変異" << endl;
+			insert_opt(rt_C, countC);//突然変異
+		}
+
+		/*if (countD > 1) {
+			//cout << "C突然変異" << endl;
+			insert_opt(rt_D, countD);//突然変異
+		}
+		if (countE > 1) {
+			//cout << "C突然変異" << endl;
+			insert_opt(rt_E, countE);//突然変異
+		}
+		*/
+
+		//1つの経路ごとの2opt近傍
+
+		if (countA > 4) {
+			//cout << "A突然変異" << endl;
+			two_opt(rt_A, countA);//突然変異
+		}
+
+		if (countB > 4) {
+			//cout << "B突然変異" << endl;
+			two_opt(rt_B, countB);//突然変異
+		}
+
+		if (countC > 4) {
+			//cout << "C突然変異" << endl;
+			two_opt(rt_C, countC);//突然変異
+		}
+
+		/*if (countD > 4) {
+			//cout << "C突然変異" << endl;
+			two_opt(rt_D, countD);//突然変異
+		}
+		if (countE > 4) {
+			//cout << "C突然変異" << endl;
+			two_opt(rt_E, countE);//突然変異
+		}
+		*/
+
+		//2つの経路ごとの2opt近傍
+
+		if (countA > 1 && countB > 1 && countC > 1) {
+			//&& countD > 1 && countE && countF > 1 && countG > 1) {
+			two_route_search(rt_A, rt_B, rt_C, rt_D, rt_E);
+		}
+
+		//step4　コストを求めて更新するか決める
+		//今のコスト
+		dist_A = dist_ABC(rt_A, countA);
+		dist_B = dist_ABC(rt_B, countB);
+		dist_C = dist_ABC(rt_C, countC);
+		dist_D = dist_ABC(rt_D, countD);
+		dist_E = dist_ABC(rt_E, countE);
+
+		if (A == 3) {
+			now_cost = cost3(dist_A, dist_B, dist_C);
+		}
+		else if (A == 5) {
+			now_cost = cost5(dist_A, dist_B, dist_C, dist_D, dist_E);
+		}
+
+		if (now_cost < min_cost) {
+			cout << "---------------------脱出更新" << endl;
+			min_cost = now_cost;
+
+			for (int p = 0; p < countA + 1; p++) {
+				best_A[p] = rt_A[p];
+			}
+			for (int p = 0; p < countB + 1; p++) {
+				best_B[p] = rt_B[p];
+			}
+			for (int p = 0; p < countC + 1; p++) {
+				best_C[p] = rt_C[p];
+			}
+			/*for (int p = 0; p < countD + 1; p++) {
+				best_D[p] = rt_D[p];
+			}
+			for (int p = 0; p < countE + 1; p++) {
+				best_E[p] = rt_E[p];
+			}
+			*/
+
+			best_countA = countA;
+			best_countB = countB;
+			best_countC = countC;
+			/*best_countD = countD;
+			best_countE = countE;
+			*/
+
+		}
+
+		//-----------------------------------------------------------------ここまで
+
 		cout << gg << endl;
 		gg++;
 		if (gg == G) {
@@ -745,11 +905,11 @@ void gravity() {
 
 }
 
-int get_rand(int max_num) {
+int get_rand(int min_num,int max_num) {
 
 	std::random_device rnd;     // 非決定的な乱数生成器を生成
 	std::mt19937 mt(rnd());     //  メルセンヌ・ツイスタの32ビット版、引数は初期シード値
-	std::uniform_int_distribution<> rand100(0, max_num);        // [0, 99] 範囲の一様乱数
+	std::uniform_int_distribution<> rand100(min_num, max_num);        
 
 
 	return rand100(mt);
