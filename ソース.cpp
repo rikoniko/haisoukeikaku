@@ -579,11 +579,11 @@ void random_route(int rt[N], int seed) {
 		//局所最適解の脱出-------------------------------------------------------------ここから
 		
 		//step1 突然変異
-		mutation_ct = get_rand(1, 500);	//突然変異が実行される確率
+		mutation_ct = get_rand(1, 25);	//突然変異が実行される確率
 		//cout << "突然変異実行回数:" << mutation_ct << endl;
 		for (int m = 0; m < mutation_ct; m++) {
-			swap1 = get_rand(0, N - 1);
-			swap2 = get_rand(0, N - 1);
+			swap1 = get_rand(0,N-1);
+			swap2 = get_rand(0,N-1);
 			//cout << "swap1:" << swap1 << "  swap2:" << swap2 << endl;
 			swap(cp_gene[gg][swap1], cp_gene[gg][swap2]);
 		}
@@ -673,10 +673,10 @@ void random_route(int rt[N], int seed) {
 
 		//2つの経路ごとの2opt近傍
 
-		if (countA > 1 && countB > 1 && countC > 1) {
-			//&& countD > 1 && countE && countF > 1 && countG > 1) {
+		/*if (countA > 1 && countB > 1 && countC > 1) {
+			//&& countD > 1 && countE) {
 			two_route_search(rt_A, rt_B, rt_C, rt_D, rt_E);
-		}
+		}*/
 
 		//step4　コストを求めて更新するか決める
 		//今のコスト
@@ -1316,7 +1316,6 @@ void insert_position(int route[], int& count, bool insert_gr_start, bool insert_
 
 //2-optを行う2つのルートの組合せ
 void two_route_search(int* rt_A, int* rt_B, int* rt_C, int* rt_D, int* rt_E) {
-	//int* rt_F, int* rt_G ) {
 
 	if (num_car == 3) {
 		//att48[3]のときに実行
@@ -1380,8 +1379,8 @@ void search_in_each_route(int* rt_1, int* rt_2, int count_1, int count_2) {
 
 
 	//2opt近傍の実行
-	for (int s = count_1 - 1; s <= count_1; s++) {
-		for (int e = count_1 + 2; e > count_1; e--) {
+	for (int s = 0; s <= count_1; s++) {
+		for (int e = count_2; e > count_1; e--) {
 
 			for (int i = s, j = e; i < count_1 + 1; i++, j--) {
 				swap(newtemp[i], newtemp[j]);
@@ -1392,6 +1391,7 @@ void search_in_each_route(int* rt_1, int* rt_2, int count_1, int count_2) {
 
 			//最短にであるか
 			if (now_dist < min_dist) {
+				//cout << "22opt" << endl;
 				//最短であるときの2optをする範囲のはじめとおわりを保持する
 				start_2opt_position = s;
 				end_2opt_position = e;
