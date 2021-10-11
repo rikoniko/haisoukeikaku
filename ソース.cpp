@@ -12,11 +12,11 @@
 #include <random>
 using namespace std;
 
-#define N 101
+#define N 48
 #define WSIZE 600
 #define A 3		//運搬車の台数 att48[3],eil101[3],pcb442[5],pr2392[7]
-#define aa 1	//コストのa att48[2],eil[1],pcb442[2],pr2392[3]
-#define G 800	//遺伝子の数
+#define aa 2	//コストのa att48[2],eil[1],pcb442[2],pr2392[3]
+#define G 1000	//遺伝子の数
 #define OPT 25	//1.5-opt近傍
 
 void display();
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
 	glutIdleFunc(idle);
 
 	//ファイルを開く
-	if ((fp = fopen("eil101.txt", "r")) == NULL) {
+	if ((fp = fopen("att48.txt", "r")) == NULL) {
 		printf("no file\n");
 		exit(0);
 	}
@@ -137,11 +137,12 @@ void random_route(int rt[N], int seed) {
 	int taboo_ct = 0;	//タブーリストの数を数えるため
 	int same_ct = 0;	//配列の値が同じ数を数えるため
 	bool not_taboo = true;	//タブーリストに含まれているかどうか
-	const int same_num = N-1;
+	const int same_num = A;
 	//int kakuritu = 0;
 	int ct_gene = 0;	//コピーしたcp_geneのカウントのため
 	std::random_device seed_gen;
 	std::mt19937 engine(seed_gen());
+	int* mutation_temp =new int[N];
 
 	if (rt_zero) {
 		
@@ -184,11 +185,6 @@ void random_route(int rt[N], int seed) {
 				}
 			}
 			else {
-				//r_geneに追加
-				/*for (int k = 0; k < N; k++) {
-					r_gene[g][k] = rt[k];
-					//cout << "r_gene[" << g << "][" << k << "]:" << r_gene[g][k] << endl << endl;
-				}*/
 
 				for (int i = 0; i < taboo_ct; i++) {
 
@@ -255,8 +251,6 @@ void random_route(int rt[N], int seed) {
 				//タブーリストに含まれていないものがr_geneとなる
 				for (int k = 0; k < N; k++) {
 					r_gene[g][k] = rt[k];
-					//cp_gene[g][k] = rt[k];
-					//cout << "r_gene[" << g << "][" << k << "]:" << r_gene[g][k] << endl << endl;
 				}
 				
 				//タブーリストに追加
@@ -285,9 +279,18 @@ void random_route(int rt[N], int seed) {
 	countC = 0;
 	countD = 0;
 	countE = 0;
-	int mutation_ct = 0;;
-	int swap1 = 0, swap2 = 0;
+
+	int mutation_ct = 0;	//どの都市を挿入するか
+	int insert_route = 0;	//どの経路に挿入するか
+	//int swap1 = 0, swap2 = 0;
 	int element = 0;	//コピーした配列の要素数を数えるため
+	bool mutation_A = true;
+	bool mutation_B = true;
+	bool mutation_C = true;
+	/*bool mutation_D = true;
+	bool mutation_E = true;*/
+	int insert_city = 0;
+	int mutation_rand = 0;	//局所最適解からの脱出の実行回数を決める
 
 	if (gg < G) {
 
@@ -444,7 +447,7 @@ void random_route(int rt[N], int seed) {
 		}
 		
 		//局所最適解からの脱出のために初期解をコピーする
-		for (int c = 0; c < countA+1; c++) {
+		for (int c = 0; c < countA + 1; c++) {
 			cp_gene[gg][c] = rt_A[c];
 			ct_gene++;
 		}
@@ -458,8 +461,8 @@ void random_route(int rt[N], int seed) {
 			cp_gene[gg][c +element] = rt_C[c];
 			ct_gene++;
 		}
-		element = ct_gene;
-		/*for (int c = 0; c < countD+1; c++) {
+		/*element = ct_gene;
+		for (int c = 0; c < countD+1; c++) {
 			cp_gene[gg][c + element] = rt_D[c];
 			ct_gene++;
 		}
@@ -469,7 +472,7 @@ void random_route(int rt[N], int seed) {
 			ct_gene++;
 		}
 		*/
-		
+
 		//1つの経路ごとの1.5opt近傍
 		if (countA > 1) {
 			//cout << "A突然変異" << endl;
@@ -495,9 +498,9 @@ void random_route(int rt[N], int seed) {
 			insert_opt(rt_E, countE);//突然変異
 		}
 		*/
-		
+
 		//1つの経路ごとの2opt近傍
-		
+
 		if (countA > 4) {
 			//cout << "A突然変異" << endl;
 			two_opt(rt_A, countA);//突然変異
@@ -522,15 +525,15 @@ void random_route(int rt[N], int seed) {
 			two_opt(rt_E, countE);//突然変異
 		}
 		*/
-	
+
 
 		//2つの経路ごとの2opt近傍
-		
+
 		if (countA > 1 && countB > 1 && countC > 1) {
 			//&& countD > 1 && countE && countF > 1 && countG > 1) {
 			two_route_search(rt_A, rt_B, rt_C, rt_D, rt_E);
 		}
-				
+
 
 		//今のコスト
 		dist_A = dist_ABC(rt_A, countA);
@@ -576,153 +579,289 @@ void random_route(int rt[N], int seed) {
 
 		}
 		
-		//局所最適解の脱出-------------------------------------------------------------ここから
 		
-		//step1 突然変異
-		mutation_ct = get_rand(1, 25);	//突然変異が実行される確率
-		//cout << "突然変異実行回数:" << mutation_ct << endl;
-		for (int m = 0; m < mutation_ct; m++) {
-			swap1 = get_rand(0,N-1);
-			swap2 = get_rand(0,N-1);
-			//cout << "swap1:" << swap1 << "  swap2:" << swap2 << endl;
-			swap(cp_gene[gg][swap1], cp_gene[gg][swap2]);
-		}
-		ct_gene = 0;
+		//局所最適解の脱出-------------------------------------------------------------ここから
+		if (countA > 1 && countB > 1 && countC > 1) {
+			//&& countD > 1 && countE > 1){
+			for (int mm = 0; mm < N; mm++) {
+				mutation_rand = get_rand(1, 5);
 
-		//step2　コピー初期解を作成
-		for (int p = 0; p < countA + 1; p++) {
-			rt_A[p] = cp_gene[gg][p];
-			ct_gene++;
-		}
-		element = ct_gene;
-		for (int p = 0; p < countB + 1; p++) {
-			rt_B[p] = cp_gene[gg][p+element];
-			ct_gene++;
-		}
-		element = ct_gene;
-		for (int p = 0; p < countC + 1; p++) {
-			rt_C[p] = cp_gene[gg][p + element];
-			ct_gene++;
-		}
-		element = ct_gene;
-		/*for (int p = 0; p < countD + 1; p++) {
-			rt_D[p] = cp_gene[gg][p + element];
-			ct_gene++;
-		}
-		element = ct_gene;
-		for (int p = 0; p < countE + 1; p++) {
-			rt_E[p] = cp_gene[gg][p + element];
-			ct_gene++;
-		}
-		*/
-		element = 0;
+				for (int z = 0; z < mutation_rand; z++) {
+					mutation_ct = get_rand(0, N - 1);	//挿入する都市を選ぶ
+					insert_city = cp_gene[gg][mutation_ct];
 
-		//step3
-		//1つの経路ごとの1.5opt近傍
-		if (countA > 1) {
-			//cout << "A突然変異" << endl;
-			insert_opt(rt_A, countA);//突然変異
-		}
+					//選ばれた都市を経路から外す
+					if (mutation_ct <= countA) {
+						//cout << "Aが選ばれる" << endl;
+						countA--;
+						mutation_A = false;
+					}
+					else if (countA < mutation_ct && mutation_ct <= countB + countA) {
+						//cout << "Bが選ばれる" << endl;
+						countB--;
+						mutation_B = false;
+					}
+					else if (countB < mutation_ct && mutation_ct <= countC + countB + countA) {
+						//cout << "Cが選ばれる" << endl;
+						countC--;
+						mutation_C = false;
+					}
+					/*else if (countC < mutation_ct && mutation_ct <= countD+countC+countB+countA) {
+						countD--;
+						mutation_D=false;
+					}
+					else {
+						countE--;
+						mutation_E=false;
+					}*/
 
-		if (countB > 1) {
-			//cout << "B突然変異" << endl;
-			insert_opt(rt_B, countB);//突然変異
-		}
+					//cout << "この都市からコピーする[" << mutation_ct << "]:" << cp_gene[gg][mutation_ct] << endl;
 
-		if (countC > 1) {
-			//cout << "C突然変異" << endl;
-			insert_opt(rt_C, countC);//突然変異
-		}
+					for (int m = mutation_ct + 1, p = 0; m < N; m++, p++) {
+						mutation_temp[p] = cp_gene[gg][m];
+						//cout << "mutation_temp["<<p<<"]:" <<mutation_temp[p]<< endl;
+					}
+					for (int m = mutation_ct, p = 0; m < N - 1; m++, p++) {
+						cp_gene[gg][m] = mutation_temp[p];
+						//cout << "cp_gene[" << m << "]:" << cp_gene[gg][m] << endl;
+					}
+					/*cout << "前のやつ" << endl;
+					for (int m = 0; m < N; m++) {
+						cout << "cp_gene[" << m << "]:" << cp_gene[gg][m] << endl;
+					}
+					*/
+					insert_route = get_rand(1, A);	//どの経路に挿入するか決める
+					//cout << "挿入する都市は" << insert_route << endl;
 
-		/*if (countD > 1) {
-			//cout << "C突然変異" << endl;
-			insert_opt(rt_D, countD);//突然変異
-		}
-		if (countE > 1) {
-			//cout << "C突然変異" << endl;
-			insert_opt(rt_E, countE);//突然変異
-		}
-		*/
+					if (insert_route == 1 && mutation_A) {
+						//cout << "1に挿入" << endl;
+						//cout << "countA:" << countA << endl;
+						for (int m = countA + 1, p = 0; m < N - 1; m++, p++) {
+							mutation_temp[p] = cp_gene[gg][m];
+						}
+						cp_gene[gg][countA + 1] = insert_city;
+						countA++;	//訪れる都市を増やす
+						for (int m = countA + 1, p = 0; m < N; m++, p++) {
+							cp_gene[gg][m] = mutation_temp[p];
+						}
 
-		//1つの経路ごとの2opt近傍
+					}
+					else if (insert_route == 2 && mutation_B) {
+						//cout << "2に挿入" << endl;
+						//cout << "countB:" << countA+countB << endl;
+						for (int m = countA + countB + 1, p = 0; m < N - 1; m++, p++) {
+							mutation_temp[p] = cp_gene[gg][m];
 
-		if (countA > 4) {
-			//cout << "A突然変異" << endl;
-			two_opt(rt_A, countA);//突然変異
-		}
+						}
 
-		if (countB > 4) {
-			//cout << "B突然変異" << endl;
-			two_opt(rt_B, countB);//突然変異
-		}
+						cp_gene[gg][countA + countB + 1] = insert_city;
+						countB++;	//訪れる都市を増やす
+						for (int m = countA + countB + 1, p = 0; m < N; m++, p++) {
+							cp_gene[gg][m] = mutation_temp[p];
+						}
 
-		if (countC > 4) {
-			//cout << "C突然変異" << endl;
-			two_opt(rt_C, countC);//突然変異
-		}
+					}
+					else if (insert_route == 3 && mutation_C) {
+						//cout << "3に挿入" << endl;
+						//cout << "countC:" <<countA+countB+ countC << endl;
+						for (int m = countA + countB + countC + 1, p = 0; m < N - 1; m++, p++) {
+							mutation_temp[p] = cp_gene[gg][m];
+						}
+						cp_gene[gg][countA + countB + countC + 1] = insert_city;
+						countC++;	//訪れる都市を増やす
+						for (int m = countA + countB + countC + 1, p = 0; m < N; m++, p++) {
+							cp_gene[gg][m] = mutation_temp[p];
+						}
 
-		/*if (countD > 4) {
-			//cout << "C突然変異" << endl;
-			two_opt(rt_D, countD);//突然変異
-		}
-		if (countE > 4) {
-			//cout << "C突然変異" << endl;
-			two_opt(rt_E, countE);//突然変異
-		}
-		*/
+					}
+					/*else if (insert_route == 4 && mutation_D) {
+						for (int m = countA + countB + countC +countD + 1, p = 0; m < N - 1; m++, p++) {
+							mutation_temp[p] = cp_gene[gg][m];
+						}
+						cp_gene[gg][countA + countB + countC +countD + 1] = insert_city;
+						countD++;	//訪れる都市を増やす
+						for (int m = countA + countB + countC +countD + 1, p = 0; m < N - 1; m++, p++) {
+							cp_gene[gg][m] = mutation_temp[p];
+						}
+					}
+					else if (insert_route == 5 && mutation_E) {
+						for (int m = countA + countB + countC +countD +countE + 1, p = 0; m < N - 1; m++, p++) {
+							mutation_temp[p] = cp_gene[gg][m];
+						}
+						cp_gene[gg][countA + countB + countC +countD +countE + 1] = insert_city;
+						countE++;	//訪れる都市を増やす
+						for (int m = countA + countB + countC +countD +countE + 1, p = 0; m < N - 1; m++, p++) {
+							cp_gene[gg][m] = mutation_temp[p];
+						}
+					}*/
+					else {
+						//cout << "それ以外" << endl;
+						cp_gene[gg][mutation_ct] = insert_city;
+						for (int m = mutation_ct + 1, p = 0; m < N; m++, p++) {
+							cp_gene[gg][m] = mutation_temp[p];
+						}
+						if (!mutation_A) {
+							countA++;
+						}
+						else if (!mutation_B) {
+							countB++;
+						}
+						else if (!mutation_C) {
+							countC++;
+						}
+						/*for (int m = 0; m < N; m++) {
+							cout << "cp_gene[" << m << "]:" << cp_gene[gg][m] << endl;
+						}*/
+					}
 
-		//2つの経路ごとの2opt近傍
+					mutation_A = true;
+					mutation_B = true;
+					mutation_C = true;
+					/*mutation_D = true;
+					mutation_E = true;*/
+				}
+				//delete[] mutation_temp;
 
-		/*if (countA > 1 && countB > 1 && countC > 1) {
-			//&& countD > 1 && countE) {
-			two_route_search(rt_A, rt_B, rt_C, rt_D, rt_E);
-		}*/
+				//経路に戻す
+				ct_gene = 0;
+				element = 0;
+				for (int c = 0; c < countA + 1; c++) {
+					rt_A[c] = cp_gene[gg][c];
+					ct_gene++;
 
-		//step4　コストを求めて更新するか決める
-		//今のコスト
-		dist_A = dist_ABC(rt_A, countA);
-		dist_B = dist_ABC(rt_B, countB);
-		dist_C = dist_ABC(rt_C, countC);
-		dist_D = dist_ABC(rt_D, countD);
-		dist_E = dist_ABC(rt_E, countE);
+				}
+				element = ct_gene;
+				for (int c = 0; c < countB + 1; c++) {
+					rt_B[c] = cp_gene[gg][c + element];
+					ct_gene++;
+				}
+				element = ct_gene;
+				for (int c = 0; c < countC + 1; c++) {
+					rt_C[c] = cp_gene[gg][c + element];
+					ct_gene++;
+				}
+				/*element = ct_gene;
+				for (int c = 0; c < countD+1; c++) {
+					rt_D[c]=cp_gene[gg][c + element];
+					ct_gene++;
+				}
+				element = ct_gene;
+				for (int c = 0; c < countE+1; c++) {
+					rt_E[c]=cp_gene[gg][c + element];
+					ct_gene++;
+				}
+				*/
 
-		if (A == 3) {
-			now_cost = cost3(dist_A, dist_B, dist_C);
-		}
-		else if (A == 5) {
-			now_cost = cost5(dist_A, dist_B, dist_C, dist_D, dist_E);
-		}
+				//1つの経路ごとの1.5opt近傍
+				if (countA > 1) {
+					//cout << "A突然変異" << endl;
+					insert_opt(rt_A, countA);//突然変異
+				}
 
-		if (now_cost < min_cost) {
-			cout << "---------------------脱出更新" << endl;
-			min_cost = now_cost;
+				if (countB > 1) {
+					//cout << "B突然変異" << endl;
+					insert_opt(rt_B, countB);//突然変異
+				}
 
-			for (int p = 0; p < countA + 1; p++) {
-				best_A[p] = rt_A[p];
+				if (countC > 1) {
+					//cout << "C突然変異" << endl;
+					insert_opt(rt_C, countC);//突然変異
+				}
+
+				/*if (countD > 1) {
+					//cout << "C突然変異" << endl;
+					insert_opt(rt_D, countD);//突然変異
+				}
+				if (countE > 1) {
+					//cout << "C突然変異" << endl;
+					insert_opt(rt_E, countE);//突然変異
+				}
+				*/
+
+				//1つの経路ごとの2opt近傍
+
+				if (countA > 4) {
+					//cout << "A突然変異" << endl;
+					two_opt(rt_A, countA);//突然変異
+				}
+
+				if (countB > 4) {
+					//cout << "B突然変異" << endl;
+					two_opt(rt_B, countB);//突然変異
+				}
+
+				if (countC > 4) {
+					//cout << "C突然変異" << endl;
+					two_opt(rt_C, countC);//突然変異
+				}
+
+				/*if (countD > 4) {
+					//cout << "C突然変異" << endl;
+					two_opt(rt_D, countD);//突然変異
+				}
+				if (countE > 4) {
+					//cout << "C突然変異" << endl;
+					two_opt(rt_E, countE);//突然変異
+				}
+				*/
+
+
+				//2つの経路ごとの2opt近傍
+
+				/*if (countA > 1 && countB > 1 && countC > 1) {
+					//&& countD > 1 && countE && countF > 1 && countG > 1) {
+					two_route_search(rt_A, rt_B, rt_C, rt_D, rt_E);
+				}*/
+
+
+				//今のコスト
+				dist_A = dist_ABC(rt_A, countA);
+				dist_B = dist_ABC(rt_B, countB);
+				dist_C = dist_ABC(rt_C, countC);
+				dist_D = dist_ABC(rt_D, countD);
+				dist_E = dist_ABC(rt_E, countE);
+
+				if (A == 3) {
+					now_cost = cost3(dist_A, dist_B, dist_C);
+				}
+				else if (A == 5) {
+					now_cost = cost5(dist_A, dist_B, dist_C, dist_D, dist_E);
+				}
+
+				if (now_cost < min_cost) {
+					cout << "---------------------脱出更新" << endl;
+					min_cost = now_cost;
+
+					for (int p = 0; p < countA + 1; p++) {
+						best_A[p] = rt_A[p];
+					}
+					for (int p = 0; p < countB + 1; p++) {
+						best_B[p] = rt_B[p];
+					}
+					for (int p = 0; p < countC + 1; p++) {
+						best_C[p] = rt_C[p];
+					}
+					/*for (int p = 0; p < countD + 1; p++) {
+						best_D[p] = rt_D[p];
+					}
+					for (int p = 0; p < countE + 1; p++) {
+						best_E[p] = rt_E[p];
+					}
+					*/
+
+					best_countA = countA;
+					best_countB = countB;
+					best_countC = countC;
+					/*best_countD = countD;
+					best_countE = countE;
+					*/
+
+				}
+
 			}
-			for (int p = 0; p < countB + 1; p++) {
-				best_B[p] = rt_B[p];
-			}
-			for (int p = 0; p < countC + 1; p++) {
-				best_C[p] = rt_C[p];
-			}
-			/*for (int p = 0; p < countD + 1; p++) {
-				best_D[p] = rt_D[p];
-			}
-			for (int p = 0; p < countE + 1; p++) {
-				best_E[p] = rt_E[p];
-			}
-			*/
-
-			best_countA = countA;
-			best_countB = countB;
-			best_countC = countC;
-			/*best_countD = countD;
-			best_countE = countE;
-			*/
-
+			
 		}
-
+		delete[] mutation_temp;
 		//-----------------------------------------------------------------ここまで
 
 		cout << gg << endl;
@@ -810,24 +949,7 @@ void draw_solution(int rt[N], double position[N][2]) {
 	}
 	glVertex2d(gr_x, gr_y);
 	glEnd();
-	//-----rt_F-----
-	glColor3d(0.0, 1.0, 1.0); //white
-	glBegin(GL_LINE_LOOP);
-	//glVertex2d(gr_x, gr_y);
-	for (int i = 0; i < best_countF + 1; i++) {
-		glVertex2dv(position[best_F[i]]);
-	}
-	glVertex2d(gr_x, gr_y);
-	glEnd();
-	//-----rt_G-----
-	glColor3d(0.0, 1.0, 0.0); //white
-	glBegin(GL_LINE_LOOP);
-	//glVertex2d(gr_x, gr_y);
-	for (int i = 0; i < best_countG + 1; i++) {
-		glVertex2dv(position[best_G[i]]);
-	}
-	glVertex2d(gr_x, gr_y);
-	glEnd();*/
+	*/
 
 	glColor3d(0.0, 0.0, 1.0); //blue
 	glPointSize(3);
@@ -1106,11 +1228,6 @@ void insert_opt(int* route, int count) {
 
 void two_opt(int* route, int count) {
 	double dist_ac, dist_cb, dist_ab, now_dist;// , dist_pn, dist_ab, dist_pc, dist_cn, now_dist;
-	//double min_mutation = 100;//変化量が最小なものを保持
-	//double now_mutation = 0;//今の変化量
-	//int insert_city = 0;//挿入する都市
-	//int pre_city = 0;//この都市の次に挿入
-	//bool is_improved = true;//改善されたか
 	bool is_improved_2opt = true;
 	double min_dist = dist_ABC(route, count);//局所探索する前の距離
 
@@ -1163,76 +1280,6 @@ void two_opt(int* route, int count) {
 		}
 
 	}
-
-	//1.5-opt近傍
-	/*while (is_improved) {
-		for (int k = 0; k < count; k++) {
-			for (int c = 0; c < k; c++) {
-				dist_ab = sqrt(pow((pos[route[k]][0] - pos[route[k + 1]][0]), 2) + pow((pos[route[k]][1] - pos[route[k + 1]][1]), 2));
-				dist_ac = sqrt(pow((pos[route[k]][0] - pos[route[c]][0]), 2) + pow((pos[route[k]][1] - pos[route[c]][1]), 2));
-				dist_cb = sqrt(pow((pos[route[c]][0] - pos[route[k + 1]][0]), 2) + pow((pos[route[c]][1] - pos[route[k + 1]][1]), 2));
-
-				now_mutation = dist_ac + dist_cb - dist_ab;
-
-				if (now_mutation < min_mutation) {
-					min_mutation = now_mutation;
-					insert_city = c;
-					pre_city = k;
-				}
-			}
-			for (int c = k + 2; c < count + 1; c++) {
-				dist_ab = sqrt(pow((pos[route[k]][0] - pos[route[k + 1]][0]), 2) + pow((pos[route[k]][1] - pos[route[k + 1]][1]), 2));
-				dist_ac = sqrt(pow((pos[route[k]][0] - pos[route[c]][0]), 2) + pow((pos[route[k]][1] - pos[route[c]][1]), 2));
-				dist_cb = sqrt(pow((pos[route[c]][0] - pos[route[k + 1]][0]), 2) + pow((pos[route[c]][1] - pos[route[k + 1]][1]), 2));
-
-				now_mutation = dist_ac + dist_cb - dist_ab;
-
-				if (now_mutation < min_mutation) {
-					min_mutation = now_mutation;
-					insert_city = c;
-					pre_city = k;
-				}
-			}
-
-		}
-
-		if (insert_city > pre_city) {
-
-			for (int s = insert_city; s > pre_city + 1; s--) {
-				swap(route[s], route[s - 1]);//前の配列と交換
-			}
-		}
-		else {
-			for (int s = insert_city; s < pre_city; s++) {
-				swap(route[s], route[s + 1]);//次の配列と交換
-			}
-		}
-
-		now_dist = dist_ABC(route, count);
-
-		if (now_dist < min_dist) {
-			min_dist = now_dist;
-			//cout << "1.5-opt近傍実行" << endl;
-			is_improved = true;
-		}
-		else {
-			//もとに戻す
-			if (insert_city > pre_city) {
-				for (int s = pre_city + 1; s < insert_city; s++) {
-					swap(route[s], route[s + 1]);//前の配列と交換
-				}
-			}
-			else {
-				for (int s = insert_city; s < pre_city; s++) {
-					swap(route[s], route[s + 1]);//前の配列と交換
-				}
-			}
-			is_improved = false;
-		}
-	}*/
-
-	
-
 
 	delete[] now_temp;
 
