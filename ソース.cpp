@@ -12,11 +12,11 @@
 #include <random>
 using namespace std;
 
-#define N 48
+#define N 101
 #define WSIZE 600
 #define A 3		//運搬車の台数 att48[3],eil101[3],pcb442[5],pr2392[7]
-#define aa 2	//コストのa att48[2],eil[1],pcb442[2],pr2392[3]
-#define G 1000	//遺伝子の数
+#define aa 1	//コストのa att48[2],eil[1],pcb442[2],pr2392[3]
+#define G 800	//遺伝子の数
 #define OPT 25	//1.5-opt近傍
 
 void display();
@@ -74,7 +74,7 @@ double min_cost = 100;
 int r_gene[G + 1][N];
 int cp_gene[G + 1][N];	//局所最適解から脱出用
 int gg = 0;		//遺伝子の数を数えるよう
-
+int cpcp_gene[N] = { 0 };
 void idle() {
 
 	random_route(route, rand());
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
 	glutIdleFunc(idle);
 
 	//ファイルを開く
-	if ((fp = fopen("att48.txt", "r")) == NULL) {
+	if ((fp = fopen("eil101.txt", "r")) == NULL) {
 		printf("no file\n");
 		exit(0);
 	}
@@ -137,12 +137,13 @@ void random_route(int rt[N], int seed) {
 	int taboo_ct = 0;	//タブーリストの数を数えるため
 	int same_ct = 0;	//配列の値が同じ数を数えるため
 	bool not_taboo = true;	//タブーリストに含まれているかどうか
-	const int same_num = A;
+	const int same_num = N-1;
 	//int kakuritu = 0;
 	int ct_gene = 0;	//コピーしたcp_geneのカウントのため
 	std::random_device seed_gen;
 	std::mt19937 engine(seed_gen());
 	int* mutation_temp =new int[N];
+
 
 	if (rt_zero) {
 		
@@ -291,9 +292,10 @@ void random_route(int rt[N], int seed) {
 	bool mutation_E = true;*/
 	int insert_city = 0;
 	int mutation_rand = 0;	//局所最適解からの脱出の実行回数を決める
+	
 
 	if (gg < G) {
-
+		
 		rt_A[countA] = r_gene[gg][0];
 		rt_B[countB] = r_gene[gg][1];
 		rt_C[countC] = r_gene[gg][2];
@@ -472,6 +474,10 @@ void random_route(int rt[N], int seed) {
 			ct_gene++;
 		}
 		*/
+		for (int c = 0; c < N; c++) {
+			cpcp_gene[c] = cp_gene[gg][c];
+		}
+
 
 		//1つの経路ごとの1.5opt近傍
 		if (countA > 1) {
@@ -579,11 +585,10 @@ void random_route(int rt[N], int seed) {
 
 		}
 		
-		
 		//局所最適解の脱出-------------------------------------------------------------ここから
 		if (countA > 1 && countB > 1 && countC > 1) {
 			//&& countD > 1 && countE > 1){
-			for (int mm = 0; mm < N; mm++) {
+			for (int mm = 0; mm < 10; mm++) {
 				mutation_rand = get_rand(1, 5);
 
 				for (int z = 0; z < mutation_rand; z++) {
@@ -858,8 +863,12 @@ void random_route(int rt[N], int seed) {
 
 				}
 
+				for (int p = 0; p < N; p++) {
+					cp_gene[gg][p] = cpcp_gene[p];
+				}
+
 			}
-			
+
 		}
 		delete[] mutation_temp;
 		//-----------------------------------------------------------------ここまで
@@ -876,7 +885,6 @@ void random_route(int rt[N], int seed) {
 		}
 
 	}
-
 
 	glutPostRedisplay();
 
@@ -1103,7 +1111,7 @@ double cost5(double dist_A, double dist_B, double dist_C, double dist_D, double 
 	sum = dist_A + dist_B + dist_C + dist_D + dist_E;
 	ave = sum / A;
 
-	return sum + aa * (fabs(ave - dist_A) + fabs(ave - dist_B) + fabs(ave - dist_C) + fabs(ave - dist_D) + fabs(ave - dist_E)) / A;
+	return sum + (aa * (fabs(ave - dist_A) + fabs(ave - dist_B) + fabs(ave - dist_C) + fabs(ave - dist_D) + fabs(ave - dist_E))) / A;
 
 }
 
